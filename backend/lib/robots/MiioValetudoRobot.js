@@ -7,6 +7,7 @@ const os = require("os");
 const path = require("path");
 const Semaphore = require("semaphore");
 
+const DmiotDummycloud = require("../dmiot/DmiotDummycloud");
 const Dummycloud = require("../miio/Dummycloud");
 const Logger = require("../Logger");
 const MiioDummycloudNotConnectedError = require("../miio/MiioDummycloudNotConnectedError");
@@ -23,6 +24,7 @@ class MiioValetudoRobot extends ValetudoRobot {
      * @param {object} options
      * @param {import("../Configuration")} options.config
      * @param {import("../ValetudoEventStore")} options.valetudoEventStore
+     * @param {boolean} [options.useDmiotBridge] Take the place of the dmiot daemon instead of talking to a miio_client
      */
     constructor(options) {
         super(options);
@@ -38,38 +40,53 @@ class MiioValetudoRobot extends ValetudoRobot {
 
         this.mapUploadUrlPrefix = this.implConfig.mapUploadUrlPrefix ?? ("http://" + this.embeddedDummycloudIp + ":8079");
 
-        this.localSocket = new RetryWrapper(
-            (() => {
-                const socket = dgram.createSocket("udp4");
-                socket.bind();
+        if (options.useDmiotBridge === true) {
+            // There is no miio_client on these robots. Therefore, there is no local miio interface.
+            this.localSocket = null;
 
-                return new MiioSocket({
-                    socket: socket,
-                    token: this.localSecret,
-                    deviceId: this.deviceId,
-                    rinfo: {address: this.ip, port: MiioSocket.PORT},
-                    timeout: undefined,
-                    name: "local",
-                    isCloudSocket: false
-                });
-            })(),
-            () => {
-                return this.localSecret;
-            }
-        );
+            this.dummyCloud = new DmiotDummycloud({
+                bindIP: this.dummycloudBindIp,
+                onConnected: () => {
+                    return this.onCloudConnected();
+                },
+                onIncomingCloudMessage: msg => {
+                    return this.onIncomingCloudMessage(msg);
+                }
+            });
+        } else {
+            this.localSocket = new RetryWrapper(
+                (() => {
+                    const socket = dgram.createSocket("udp4");
+                    socket.bind();
 
-        this.dummyCloud = new Dummycloud({
-            spoofedIP: this.embeddedDummycloudIp,
-            cloudSecret: this.cloudSecret,
-            deviceId: this.deviceId,
-            bindIP: this.dummycloudBindIp,
-            onConnected: () => {
-                return this.onCloudConnected();
-            },
-            onIncomingCloudMessage: msg => {
-                return this.onIncomingCloudMessage(msg);
-            }
-        });
+                    return new MiioSocket({
+                        socket: socket,
+                        token: this.localSecret,
+                        deviceId: this.deviceId,
+                        rinfo: {address: this.ip, port: MiioSocket.PORT},
+                        timeout: undefined,
+                        name: "local",
+                        isCloudSocket: false
+                    });
+                })(),
+                () => {
+                    return this.localSecret;
+                }
+            );
+
+            this.dummyCloud = new Dummycloud({
+                spoofedIP: this.embeddedDummycloudIp,
+                cloudSecret: this.cloudSecret,
+                deviceId: this.deviceId,
+                bindIP: this.dummycloudBindIp,
+                onConnected: () => {
+                    return this.onCloudConnected();
+                },
+                onIncomingCloudMessage: msg => {
+                    return this.onIncomingCloudMessage(msg);
+                }
+            });
+        }
 
         this.fdsUploadSemaphore = Semaphore(2);
         this.expressApp = express();
@@ -357,7 +374,7 @@ class MiioValetudoRobot extends ValetudoRobot {
     sendCommand(method, args = [], options = {}) {
         const msg = {"method": method, "params": args};
 
-        if (options.interface === "cloud") {
+        if (options.interface === "cloud" || this.localSocket === null) {
             if (this.dummyCloud.miioSocket.connected) {
                 return this.sendCloud(msg, options);
             } else {
@@ -507,7 +524,7 @@ class MiioValetudoRobot extends ValetudoRobot {
     async shutdown() {
         await super.shutdown();
         await this.dummyCloud.shutdown();
-        await this.localSocket.shutdown();
+        await this.localSocket?.shutdown();
     }
 
     getCloudSecretFromFS() {

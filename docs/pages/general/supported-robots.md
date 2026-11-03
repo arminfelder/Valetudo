@@ -767,6 +767,32 @@ deviceIds, which are unexpected for miio. To solve that:
 
 - [Fastboot](/pages/installation/dreame/#fastboot)
 
+### X50 Ultra
+
+The Dreame X50 Ultra is sold as:
+- Dreame X50 Ultra Complete
+
+The serial number should start with `R2532H`.
+
+#### Comments
+
+Support for this robot is experimental.
+
+This robot does not have a `miio_client`. Its firmware uses the Dreame `dmiot` daemon to connect to the cloud.
+Valetudo takes the place of `dmiot` and listens on `127.0.0.1:64320`.
+
+The firmware starts `dmiot` at each boot. Thus, the Valetudo start script must stop `dmiot` before it starts Valetudo:
+`/usr/bin/dmio_sdk.sh stop`. This command also stops the `dmio_monitor.sh` watchdog.
+
+If the dmiot daemon runs, Valetudo logs that port 64320 is in use. Valetudo then tries again every 5 seconds.
+
+There is no rooting method for this robot in the Valetudo documentation yet.
+
+#### Details
+
+**Valetudo Binary**: `aarch64`
+**Secure Boot**: `yes`
+
 
 
 ## MOVA
