@@ -226,6 +226,18 @@
               }
             }
           },
+          "homeassistant": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "enabled"
+            ],
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              }
+            }
+          },
           "optionalExposedCapabilities": {
             "type": "array",
             "items": {

@@ -31,6 +31,20 @@ Usually, it's a network-related or ACL issue.
 Also, keep in mind that MQTT Autodiscovery will **not** create a "New devices discovered on your network" notification in Home Assistant.
 The new Valetudo Device will just be there.
 
+### Autodiscovery setting
+
+Home Assistant autodiscovery is enabled by default. You can disable it in `Connectivity - MQTT Connectivity` with the
+`Home Assistant autodiscovery` checkbox. When you disable it, Valetudo removes the device and all its entities from Home Assistant.
+The Homie topics and the regular MQTT topics stay available.
+
+Valetudo uses the MQTT device-based discovery of Home Assistant. It publishes one retained message with all entities to
+`homeassistant/device/valetudo_<identifier>/config`, where `<identifier>` is the lowercase MQTT identifier.
+This requires a Home Assistant version that supports device-based discovery.
+
+Older Valetudo versions published one discovery topic per entity (`homeassistant/<component>/<identifier>/<entity>/config`).
+On the first connection after the update, Valetudo migrates these with the `migrate_discovery` mechanism of Home Assistant and then
+clears the old topics. Entity IDs and customizations that you made in Home Assistant are kept.
+
 ### Building Dashboards with Valetudo
 
 ![ha-demo-dashboard.png](../img/ha-demo-dashboard.png)

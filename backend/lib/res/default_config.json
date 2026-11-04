@@ -42,6 +42,9 @@
         "customizations": {
             "topicPrefix": ""
         },
+        "homeassistant": {
+            "enabled": true
+        },
         "optionalExposedCapabilities": []
     },
     "ntpClient": {

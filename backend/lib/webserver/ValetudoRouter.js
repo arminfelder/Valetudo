@@ -295,6 +295,9 @@ class ValetudoRouter {
             customizations: {
                 topicPrefix: obj.customizations.topicPrefix
             },
+            homeassistant: {
+                enabled: obj.homeassistant?.enabled ?? true
+            },
             optionalExposedCapabilities: Array.isArray(obj.optionalExposedCapabilities) ? [...new Set(obj.optionalExposedCapabilities)] : []
         };
     }

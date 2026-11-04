@@ -301,6 +301,9 @@ export interface MQTTConfiguration {
     customizations: {
         topicPrefix: string;
     };
+    homeassistant: {
+        enabled: boolean;
+    };
     optionalExposedCapabilities: Array<string>;
 }
 

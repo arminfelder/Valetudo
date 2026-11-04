@@ -1,6 +1,5 @@
 const CallbackHassAnchorSubscriber = require("../CallbackHassAnchorSubscriber");
 const HassAnchor = require("../HassAnchor");
-const HomieCommonAttributes = require("../../homie/HomieCommonAttributes");
 const Logger = require("../../../Logger");
 const NotImplementedError = require("../../../core/NotImplementedError");
 
@@ -171,7 +170,7 @@ class HassComponent {
     /**
      * Must be implemented to return the Hass autoconf payload.
      * Anchors are allowed, but they may only change while the component is not configured. This is not enforced.
-     * Do not add the "device" boilerplate or availability topic stuff, they will be overwritten.
+     * Do not add the "device" boilerplate or availability topic stuff. HassController adds them on device level.
      * You may NOT return null.
      *
      * @abstract
@@ -189,11 +188,6 @@ class HassComponent {
     getAutoconfInternal() {
         return Object.assign(this.getAutoconf(), {
             unique_id: this.componentId,
-            availability_topic: this.hass.controller.hassAnchorProvider.getTopicReference(HassAnchor.REFERENCE.AVAILABILITY),
-            payload_available: HomieCommonAttributes.STATE.READY,
-            // MqttController will try to send "lost" at least once before cleanly disconnecting
-            payload_not_available: HomieCommonAttributes.STATE.LOST,
-            device: this.hass.getAutoconfDeviceBoilerplate(),
         });
     }
 

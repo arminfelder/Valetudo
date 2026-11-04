@@ -732,6 +732,20 @@ const MQTTConnectivity = (): React.ReactElement => {
                 </Typography>
             </GroupBox>
 
+            <GroupBox
+                title="Home Assistant autodiscovery"
+                checked={mqttConfiguration.homeassistant.enabled}
+                onChange={(e) => {
+                    modifyMQTTConfig(e.target.checked, ["homeassistant", "enabled"]);
+                }}
+            >
+                <Typography variant="body2" sx={{mb: "1rem"}}>
+                    Valetudo announces the robot to Home Assistant with one device-based discovery message.
+                    This requires a Home Assistant version that supports MQTT device-based discovery.
+                    If you disable this, Valetudo removes the device from Home Assistant.
+                </Typography>
+            </GroupBox>
+
             {
                 mqttProperties.optionalExposableCapabilities.length > 0 &&
                 <GroupBox title="Optionally exposable capabilities">
