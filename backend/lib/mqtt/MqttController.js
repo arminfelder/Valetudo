@@ -93,17 +93,12 @@ class MqttController {
 
         /** @type {import("./handles/RobotMqttHandle")|null} */
         this.robotHandle = null;
-        /** @type {HassController} */
+        /** @type {HassController|null} */
         this.hassController = null;
         this.hassAnchorProvider = new HassAnchorProvider(); //Always required
 
         if (this.currentConfig.enabled) {
-            this.hassController = new HassController({
-                controller: this,
-                robot: this.robot,
-                config: this.config,
-                friendlyName: this.valetudoHelper.getFriendlyName()
-            });
+            this.hassController = this.createHassController();
 
             this.robotHandle = new RobotMqttHandle({
                 robot: this.robot,
@@ -137,6 +132,25 @@ class MqttController {
 
     /**
      * @private
+     * @param {Map<string, string>} [previousComponents]
+     * @return {HassController|null}
+     */
+    createHassController(previousComponents) {
+        if (this.currentConfig.homeassistant?.enabled === false) {
+            return null;
+        }
+
+        return new HassController({
+            controller: this,
+            robot: this.robot,
+            config: this.config,
+            friendlyName: this.valetudoHelper.getFriendlyName(),
+            previousComponents: previousComponents
+        });
+    }
+
+    /**
+     * @private
      * @return {Promise<void>}
      */
     async handleConfigUpdated() {
@@ -145,6 +159,16 @@ class MqttController {
                 resolve();
             });
         });
+
+        if (
+            this.hassController !== null &&
+            this.config.get("mqtt").homeassistant?.enabled === false
+        ) {
+            await this.hassController.removeDevice();
+        }
+
+        const previousHassComponents = this.hassController?.getPublishedComponents();
+
         await this.shutdown();
 
         this.loadConfig();
@@ -152,12 +176,7 @@ class MqttController {
         this.hassAnchorProvider = new HassAnchorProvider(); // Always create a new one to reset anchors + subscriptions
 
         if (this.currentConfig.enabled) {
-            this.hassController = new HassController({
-                controller: this,
-                robot: this.robot,
-                config: this.config,
-                friendlyName: this.valetudoHelper.getFriendlyName()
-            });
+            this.hassController = this.createHassController(previousHassComponents);
 
             this.robotHandle = new RobotMqttHandle({
                 robot: this.robot,
@@ -227,6 +246,7 @@ class MqttController {
             connection: mqttConfig.connection,
             identity: mqttConfig.identity,
             customizations: mqttConfig.customizations,
+            homeassistant: mqttConfig.homeassistant,
             optionalExposedCapabilities: mqttConfig.optionalExposedCapabilities
         });
 
@@ -350,7 +370,7 @@ class MqttController {
                         Logger.error("Error while configuring robotHandle", e);
                     }
 
-                    await this.hassController.configure();
+                    await this.hassController?.configure();
 
                     this.startAutorefreshService();
 
@@ -522,7 +542,7 @@ class MqttController {
 
             await this.robotHandle.deconfigure(deconfigOpts);
 
-            await this.hassController.deconfigure(deconfigOpts);
+            await this.hassController?.deconfigure(deconfigOpts);
 
         }, {targetState: HomieCommonAttributes.STATE.DISCONNECTED});
 
@@ -798,7 +818,9 @@ class MqttController {
      * @return {Promise<void>}
      */
     async withHassAsync(callback) {
-        await callback(this.hassController);
+        if (this.hassController !== null) {
+            await callback(this.hassController);
+        }
     }
 
 
@@ -815,7 +837,9 @@ class MqttController {
      * @return {void}
      */
     withHass(callback) {
-        callback(this.hassController);
+        if (this.hassController !== null) {
+            callback(this.hassController);
+        }
     }
 
 
@@ -917,6 +941,9 @@ module.exports = MqttController;
  *
  * @property {object} customizations
  * @property {string} customizations.topicPrefix
+ *
+ * @property {object} homeassistant
+ * @property {boolean} homeassistant.enabled
  *
  * @property {Array<string>} optionalExposedCapabilities
  */

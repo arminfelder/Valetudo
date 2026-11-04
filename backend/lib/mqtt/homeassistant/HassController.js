@@ -1,3 +1,6 @@
+const HassAnchor = require("./HassAnchor");
+const HomieCommonAttributes = require("../homie/HomieCommonAttributes");
+const Logger = require("../../Logger");
 const MqttCommonAttributes = require("../MqttCommonAttributes");
 const Tools = require("../../utils/Tools");
 
@@ -13,6 +16,9 @@ const Tools = require("../../utils/Tools");
  * This controller handles publication of autodiscovery topics and (optionally) topic data that can't be handled by
  * mqtt handles.
  *
+ * Autodiscovery uses the Home Assistant device-based discovery. All components are collected and published
+ * together as one retained message on a single device discovery topic.
+ *
  * Note that subscription is currently unimplemented for Hass. It can be easily added in a similar way to the main
  * MqttController if there's an actual need for it.
  */
@@ -23,6 +29,7 @@ class HassController {
      * @param {import("../../core/ValetudoRobot")} options.robot
      * @param {import("../../Configuration")} options.config
      * @param {string} options.friendlyName
+     * @param {Map<string, string>} [options.previousComponents] componentId to platform of the previous HassController
      */
     constructor(options) {
         this.controller = options.controller;
@@ -42,6 +49,33 @@ class HassController {
          * @private
          */
         this.nonCompliantComponents = [];
+
+        /**
+         * @private
+         * @type {Map<string, {component: import("./components/HassComponent"), config: object}>}
+         */
+        this.discoveryComponents = new Map();
+
+        /** @private */
+        this.isConfigured = false;
+
+        /** @private */
+        this.publishDiscoveryTimeout = undefined;
+
+        /**
+         * A previous HassController of this process has already migrated the legacy topics
+         *
+         * @private
+         */
+        this.migrationDone = options.previousComponents !== undefined;
+
+        /**
+         * componentId to platform of all components in the last published device discovery
+         *
+         * @private
+         * @type {Map<string, string>}
+         */
+        this.publishedComponents = new Map(options.previousComponents ?? []);
     }
 
     /**
@@ -105,6 +139,10 @@ class HassController {
         for (const component of this.nonCompliantComponents) {
             await component.configure();
         }
+
+        this.isConfigured = true;
+
+        await this.publishDeviceDiscovery();
     }
 
     /**
@@ -114,9 +152,171 @@ class HassController {
      * @return {Promise<void>}
      */
     async deconfigure(options) {
+        this.isConfigured = false;
+        clearTimeout(this.publishDiscoveryTimeout);
+        this.publishDiscoveryTimeout = undefined;
+
         for (const component of this.nonCompliantComponents) {
             await component.deconfigure(options);
         }
+
+        this.discoveryComponents.clear();
+    }
+
+    /**
+     * @public
+     * @return {Map<string, string>} componentId to platform
+     */
+    getPublishedComponents() {
+        return new Map(this.publishedComponents);
+    }
+
+    /**
+     * @public
+     * @return {string}
+     */
+    getDeviceDiscoveryTopic() {
+        return "homeassistant/device/" + this.objectId + "/config";
+    }
+
+    /**
+     * Remove the device and all its components from Home Assistant.
+     *
+     * @return {Promise<void>}
+     */
+    async removeDevice() {
+        clearTimeout(this.publishDiscoveryTimeout);
+        this.publishDiscoveryTimeout = undefined;
+        this.publishedComponents.clear();
+
+        await this.controller.publishHass(
+            this.getDeviceDiscoveryTopic(),
+            "",
+            {qos: MqttCommonAttributes.QOS.AT_LEAST_ONCE, retain: true}
+        );
+    }
+
+    /**
+     * @private
+     * @param {Array<string>} removedComponentIds
+     * @return {object|null}
+     */
+    buildDeviceDiscoveryPayload(removedComponentIds) {
+        const components = {};
+
+        for (const [componentId, entry] of this.discoveryComponents) {
+            components[componentId] = entry.config;
+        }
+
+        // Home Assistant removes a component only if it receives the component with nothing but its platform
+        for (const componentId of removedComponentIds) {
+            components[componentId] = {platform: this.publishedComponents.get(componentId)};
+        }
+
+        return this.controller.hassAnchorProvider.resolveTopicReferences({
+            device: this.getAutoconfDeviceBoilerplate(),
+            origin: {
+                name: "Valetudo",
+                sw_version: Tools.GET_VALETUDO_VERSION(),
+                support_url: "https://valetudo.cloud"
+            },
+            availability_topic: this.controller.hassAnchorProvider.getTopicReference(HassAnchor.REFERENCE.AVAILABILITY),
+            payload_available: HomieCommonAttributes.STATE.READY,
+            // MqttController will try to send "lost" at least once before cleanly disconnecting
+            payload_not_available: HomieCommonAttributes.STATE.LOST,
+            qos: this.qos,
+            components: components
+        });
+    }
+
+    /**
+     * @private
+     * @return {Promise<void>}
+     */
+    async publishDeviceDiscovery() {
+        clearTimeout(this.publishDiscoveryTimeout);
+        this.publishDiscoveryTimeout = undefined;
+
+        if (!this.isConfigured || this.discoveryComponents.size === 0) {
+            return;
+        }
+
+        const removedComponentIds = [...this.publishedComponents.keys()].filter(componentId => {
+            return !this.discoveryComponents.has(componentId);
+        });
+        const payload = this.buildDeviceDiscoveryPayload([]);
+
+        if (payload === null) {
+            Logger.warn("Unable to publish Home Assistant device discovery due to unresolved topic references");
+            return;
+        }
+
+        // BEGIN migration code to be removed with a later version
+        // Home Assistant keeps entity IDs only if migrate_discovery is sent to the old topics before the device payload.
+        const migrate = !this.migrationDone;
+        const legacyTopics = [...this.discoveryComponents.values()].map(entry => {
+            return entry.component.getAutoconfTopic();
+        });
+
+        if (migrate) {
+            for (const topic of legacyTopics) {
+                await this.controller.publishHass(
+                    topic,
+                    JSON.stringify({migrate_discovery: true}),
+                    {qos: MqttCommonAttributes.QOS.AT_LEAST_ONCE, retain: true}
+                );
+            }
+        }
+        // END migration code to be removed with a later version
+
+        if (removedComponentIds.length > 0) {
+            await this.controller.publishHass(
+                this.getDeviceDiscoveryTopic(),
+                JSON.stringify(this.buildDeviceDiscoveryPayload(removedComponentIds)),
+                {qos: MqttCommonAttributes.QOS.AT_LEAST_ONCE, retain: true}
+            );
+        }
+
+        await this.controller.publishHass(
+            this.getDeviceDiscoveryTopic(),
+            JSON.stringify(payload),
+            {qos: MqttCommonAttributes.QOS.AT_LEAST_ONCE, retain: true}
+        );
+
+        this.publishedComponents = new Map([...this.discoveryComponents].map(([componentId, entry]) => {
+            return [componentId, entry.component.componentType];
+        }));
+
+        // BEGIN migration code to be removed with a later version
+        if (migrate) {
+            for (const topic of legacyTopics) {
+                await this.controller.publishHass(
+                    topic,
+                    "",
+                    {qos: MqttCommonAttributes.QOS.AT_LEAST_ONCE, retain: true}
+                );
+            }
+
+            this.migrationDone = true;
+        }
+        // END migration code to be removed with a later version
+    }
+
+    /**
+     * Publishes the device discovery soon, so that changes of several components are sent as one message.
+     *
+     * @private
+     */
+    scheduleDeviceDiscoveryPublish() {
+        if (!this.isConfigured || this.publishDiscoveryTimeout !== undefined) {
+            return;
+        }
+
+        this.publishDiscoveryTimeout = setTimeout(() => {
+            this.publishDeviceDiscovery().catch(err => {
+                Logger.warn("Error while publishing Home Assistant device discovery", err);
+            });
+        }, HassController.DISCOVERY_PUBLISH_DELAY);
     }
 
 
@@ -176,12 +376,15 @@ class HassController {
             return;
         }
 
-        await this.controller.publishHass(
-            component.getAutoconfTopic(),
-            JSON.stringify(payload),
-            {qos: MqttCommonAttributes.QOS.AT_LEAST_ONCE, retain: true}
-        );
+        this.discoveryComponents.set(component.componentId, {
+            component: component,
+            config: Object.assign({platform: component.componentType}, payload)
+        });
+
+        this.scheduleDeviceDiscoveryPublish();
     }
 }
+
+HassController.DISCOVERY_PUBLISH_DELAY = 250; // ms
 
 module.exports = HassController;
