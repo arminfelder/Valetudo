@@ -1,0 +1,130 @@
+name: PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 22.x
+
+jobs:
+  check:
+    name: Lint, type-check, test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Generate OpenAPI schema
+        run: npm run build_openapi_schema
+
+      - name: Generate code
+        run: npm run generate_code --workspace=backend
+
+      - name: Type-check
+        run: npm run ts-check --workspace=frontend --workspace=backend
+
+      - name: Lint
+        run: npm run lint --workspace=frontend --workspace=backend
+
+      - name: Test
+        run: npm test --workspace=backend
+        env:
+          CI: true
+
+  build:
+    name: Build binaries
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - uses: actions/cache@v4
+        with:
+          path: build_dependencies/pkg
+          key: pkg-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: pkg-${{ runner.os }}-
+
+      - run: npm ci
+
+      - name: Generate OpenAPI schema
+        run: npm run build_openapi_schema
+
+      - name: Build frontend
+        run: npm run build --workspace=frontend
+
+      - name: Build backend
+        run: npm run build --workspace=backend
+
+      - name: Smoke-check binaries
+        run: |
+          set -eu
+          for f in build/armv7/valetudo build/armv7/valetudo-lowmem build/aarch64/valetudo; do
+            test -s "$f"
+            file "$f"
+          done
+
+      - name: Set artifact suffix
+        id: suffix
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: echo "value=${PR_NUMBER:+pr${PR_NUMBER}-}${HEAD_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: valetudo-armv7-${{ steps.suffix.outputs.value }}
+          path: build/armv7/valetudo
+          retention-days: 14
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: valetudo-armv7-lowmem-${{ steps.suffix.outputs.value }}
+          path: build/armv7/valetudo-lowmem
+          retention-days: 14
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: valetudo-aarch64-${{ steps.suffix.outputs.value }}
+          path: build/aarch64/valetudo
+          retention-days: 14
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: valetudo-openapi-${{ steps.suffix.outputs.value }}
+          path: build/valetudo.openapi.schema.json
+          retention-days: 14
+
+  docs:
+    name: Build docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build docs
+        run: npm run build --workspace=docs

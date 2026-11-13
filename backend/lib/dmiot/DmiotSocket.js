@@ -45,11 +45,10 @@ class DmiotSocket {
 
         this.port = options.port ?? DmiotSocket.PORT;
         this.bindIP = options.bindIP;
-        /** @type {NodeJS.Timeout | undefined} */
         this.listenRetryTimeout = undefined;
 
         this.server.on("error", (e) => {
-            if (/** @type {NodeJS.ErrnoException} */ (e).code === "EADDRINUSE") {
+            if (/** @type {Error & {code?: string}} */ (e).code === "EADDRINUSE") {
                 Logger.error(`dmiot port ${this.port} is in use. The dmiot daemon must be stopped. Retrying in ${LISTEN_RETRY_INTERVAL / 1000}s`);
 
                 this.listenRetryTimeout = setTimeout(() => {
