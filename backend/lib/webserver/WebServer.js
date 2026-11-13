@@ -3,6 +3,7 @@ const compression = require("compression");
 const dynamicMiddleware = require("express-dynamic-middleware");
 const express = require("express");
 const http = require("http");
+const https = require("https");
 const path = require("path");
 const swaggerUi = require("swagger-ui-express");
 const swaggerValidation = require("openapi-validator-middleware");
@@ -27,6 +28,7 @@ const TimerRouter = require("./TimerRouter");
 const Tools = require("../utils/Tools");
 const UpdaterRouter = require("./UpdaterRouter");
 const ValetudoEventRouter = require("./ValetudoEventRouter");
+const WebServerTLSCertificateProvider = require("./WebServerTLSCertificateProvider");
 
 class WebServer {
     /**
@@ -103,8 +105,6 @@ class WebServer {
             }
         });
 
-        const server = http.createServer(this.app);
-
         this.loadApiSpec();
         this.validator = function superBasicValidationMiddleware(req, res, next) {
             // We can save a lot of code in our routers by always at least making sure that req.body exists
@@ -172,11 +172,97 @@ class WebServer {
             res.status(404).send(Tools.GET_RANDOM_ARRAY_ELEMENT(Object.values(notFoundPages)));
         });
 
-        server.listen(this.port, function() {
-            Logger.info("Webserver running on port", self.port);
-        });
+        /** @type {Array<import("http").Server>} */
+        this.servers = [];
 
-        this.webserver = server;
+        const tlsCredentials = this.loadTLSCredentials();
+
+        if (tlsCredentials) {
+            const httpsPort = this.webserverConfig.https.port;
+            const httpsServer = https.createServer(tlsCredentials, this.app);
+
+            httpsServer.listen(httpsPort, function() {
+                Logger.info("HTTPS Webserver running on port", httpsPort);
+            });
+
+            const redirectServer = http.createServer((req, res) => {
+                this.handleHttpsRedirect(req, res, httpsPort);
+            });
+
+            redirectServer.listen(this.port, function() {
+                Logger.info("HTTP to HTTPS redirect running on port", self.port);
+            });
+
+            this.servers.push(httpsServer, redirectServer);
+        } else {
+            const server = http.createServer(this.app);
+
+            server.listen(this.port, function() {
+                Logger.info("Webserver running on port", self.port);
+            });
+
+            this.servers.push(server);
+        }
+    }
+
+    /**
+     * @private
+     * @returns {{cert: string, key: string} | null}
+     */
+    loadTLSCredentials() {
+        const httpsConfig = this.webserverConfig.https;
+
+        if (httpsConfig?.enabled !== true) {
+            return null;
+        }
+
+        try {
+            return WebServerTLSCertificateProvider.GET_CERTIFICATE({
+                certPath: httpsConfig.certPath,
+                keyPath: httpsConfig.keyPath,
+                storageDir: path.dirname(this.config.location),
+                hostnames: [
+                    Tools.GET_ZEROCONF_HOSTNAME(),
+                    "localhost",
+                    ...WebServerTLSCertificateProvider.GET_LOCAL_IP_ADDRESSES()
+                ]
+            });
+        } catch (e) {
+            Logger.error("Failed to load HTTPS certificate. Falling back to plain HTTP.", e);
+
+            return null;
+        }
+    }
+
+    /**
+     * @private
+     * @param {import("http").IncomingMessage} req
+     * @param {import("http").ServerResponse} res
+     * @param {number} httpsPort
+     */
+    handleHttpsRedirect(req, res, httpsPort) {
+        // SSDP clients fetch the device description over plain HTTP only.
+        if (req.url?.startsWith("/_ssdp/")) {
+            this.app(req, res);
+
+            return;
+        }
+
+        const hostHeader = req.headers.host ?? "";
+        const hostMatch = /^(\[[^\]]+\]|[^:]+)/.exec(hostHeader);
+
+        if (!hostMatch) {
+            res.statusCode = 400;
+            res.end();
+
+            return;
+        }
+
+        const portSuffix = httpsPort === 443 ? "" : `:${httpsPort}`;
+
+        res.statusCode = 301;
+        res.setHeader("Location", `https://${hostMatch[1]}${portSuffix}${req.url ?? "/"}`);
+        res.end();
     }
 
     /**
@@ -220,8 +306,13 @@ class WebServer {
             this.robotRouter.shutdown();
             this.valetudoRouter.shutdown();
 
-            //closing the server
-            this.webserver.close(() => {
+            Promise.all(this.servers.map(server => {
+                return new Promise(closeResolve => {
+                    server.close(() => {
+                        closeResolve();
+                    });
+                });
+            })).then(() => {
                 Logger.debug("Webserver shutdown done");
                 resolve();
             });

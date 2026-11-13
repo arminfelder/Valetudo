@@ -41,6 +41,24 @@
               },
               "blockExternalAccess": {
                 "type": "boolean"
+              },
+              "https": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "port": {
+                    "type": "number"
+                  },
+                  "certPath": {
+                    "type": "string"
+                  },
+                  "keyPath": {
+                    "type": "string"
+                  }
+                }
               }
             }
           },
