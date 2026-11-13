@@ -181,16 +181,28 @@ class WebServer {
             const httpsPort = this.webserverConfig.https.port;
             const httpsServer = https.createServer(tlsCredentials, this.app);
 
+            let httpsListening = false;
+
+            httpsServer.on("error", (err) => {
+                Logger.error(`HTTPS Webserver failed on port ${httpsPort}. Serving plain HTTP on port ${self.port} instead.`, err);
+                httpsListening = false;
+            });
+
             httpsServer.listen(httpsPort, function() {
+                httpsListening = true;
                 Logger.info("HTTPS Webserver running on port", httpsPort);
             });
 
             const redirectServer = http.createServer((req, res) => {
-                this.handleHttpsRedirect(req, res, httpsPort);
+                if (httpsListening) {
+                    this.handleHttpsRedirect(req, res, httpsPort);
+                } else {
+                    this.app(req, res);
+                }
             });
 
             redirectServer.listen(this.port, function() {
-                Logger.info("HTTP to HTTPS redirect running on port", self.port);
+                Logger.info("HTTP Webserver running on port", self.port);
             });
 
             this.servers.push(httpsServer, redirectServer);

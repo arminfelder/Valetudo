@@ -13,7 +13,7 @@
         },
         "blockExternalAccess": true,
         "https": {
-            "enabled": false,
+            "enabled": true,
             "port": 443,
             "certPath": "",
             "keyPath": ""
