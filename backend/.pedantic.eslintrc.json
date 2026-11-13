@@ -23,7 +23,15 @@
       ],
       "rules": {
         "no-process-exit": "off",
-        "node/no-process-exit": "off"
+        "node/no-process-exit": "off",
+        "node/no-missing-require": [
+          "error",
+          {
+            "allowModules": [
+              "uuid"
+            ]
+          }
+        ]
       }
     }
   ],
