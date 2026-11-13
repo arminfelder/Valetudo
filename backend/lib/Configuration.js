@@ -48,9 +48,52 @@ class Configuration {
 
     persist() {
         try {
-            fs.writeFileSync(this.location, this.getSerializedConfig());
+            const serializedConfig = this.getSerializedConfig();
+
+            try {
+                this.replaceConfigFile(serializedConfig);
+            } catch (e) {
+                // A rename is not possible for a file that is a mount point. The directory can also be read-only.
+                Logger.warn("Failed to replace the configuration file. Writing it in place instead.", e);
+
+                fs.writeFileSync(this.location, serializedConfig);
+            }
         } catch (e) {
             Logger.error("Error while persisting configuration", e);
+        }
+    }
+
+    /**
+     * A power loss during a write in place can truncate the file. The rename replaces the file in one step.
+     *
+     * @private
+     * @param {string} serializedConfig
+     */
+    replaceConfigFile(serializedConfig) {
+        const tmpLocation = this.location + ".tmp";
+        let mode;
+
+        try {
+            mode = fs.statSync(this.location).mode & 0o777;
+        } catch (e) {
+            mode = undefined;
+        }
+
+        try {
+            const fd = fs.openSync(tmpLocation, "w", mode);
+
+            try {
+                fs.writeFileSync(fd, serializedConfig);
+                fs.fsyncSync(fd);
+            } finally {
+                fs.closeSync(fd);
+            }
+
+            fs.renameSync(tmpLocation, this.location);
+        } catch (e) {
+            fs.rmSync(tmpLocation, {force: true});
+
+            throw e;
         }
     }
 
