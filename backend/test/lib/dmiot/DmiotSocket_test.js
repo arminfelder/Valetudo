@@ -1,7 +1,7 @@
 const assert = require("node:assert");
 const net = require("node:net");
-const { once } = require("node:events");
 const { describe, it } = require("node:test");
+const { once } = require("node:events");
 
 const DmiotCodec = require("../../../lib/dmiot/DmiotCodec");
 const DmiotSocket = require("../../../lib/dmiot/DmiotSocket");
@@ -37,7 +37,7 @@ async function setup(handlers = {}) {
     await once(client, "connect");
     await connected;
 
-    return {dmiotSocket, client, incoming};
+    return {dmiotSocket: dmiotSocket, client: client, incoming: incoming};
 }
 
 describe("DmiotSocket", () => {

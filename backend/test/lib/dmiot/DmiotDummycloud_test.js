@@ -1,7 +1,7 @@
 const assert = require("node:assert");
 const net = require("node:net");
-const { once } = require("node:events");
 const { describe, it } = require("node:test");
+const { once } = require("node:events");
 
 const DmiotCodec = require("../../../lib/dmiot/DmiotCodec");
 const DmiotDummycloud = require("../../../lib/dmiot/DmiotDummycloud");
@@ -14,7 +14,7 @@ const DmiotDummycloud = require("../../../lib/dmiot/DmiotDummycloud");
 async function readMessages(client, count) {
     let data = "";
 
-    while ((data.match(/}{/g)?.length ?? 0) + 1 < count || data === "") {
+    while ((data.match(/\}\{/g)?.length ?? 0) + 1 < count || data === "") {
         data += (await once(client, "data"))[0].toString();
     }
 
