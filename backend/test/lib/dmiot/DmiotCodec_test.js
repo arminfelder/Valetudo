@@ -47,4 +47,17 @@ describe("DmiotCodec", () => {
 
         assert.deepStrictEqual(codec.decode(stream), [{id: 3, result: "ok"}]);
     });
+
+    it("drops frames with a JSON payload that is not an object", () => {
+        const codec = new DmiotCodec();
+        const stream = Buffer.concat([
+            DmiotCodec.encodeFrame(null),
+            DmiotCodec.encodeFrame(42),
+            DmiotCodec.encodeFrame("text"),
+            DmiotCodec.encodeFrame([{id: 1}]),
+            DmiotCodec.encodeFrame({id: 4, result: "ok"})
+        ]);
+
+        assert.deepStrictEqual(codec.decode(stream), [{id: 4, result: "ok"}]);
+    });
 });

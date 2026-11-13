@@ -27,6 +27,8 @@ class DmiotSocket {
 
         this.nextId = 1;
         /**
+         * The robot supplies the keys. A null prototype prevents matches with inherited property names.
+         *
          * @type {Object.<string, {
          *          timeout_id?: NodeJS.Timeout,
          *          resolve: (result: any) => void,
@@ -34,7 +36,7 @@ class DmiotSocket {
          *          method: string
          *      }>}
          */
-        this.pendingRequests = {};
+        this.pendingRequests = Object.create(null);
         this.connected = false;
         /** @type {net.Socket | null} */
         this.connection = null;
@@ -131,7 +133,7 @@ class DmiotSocket {
                 clearTimeout(pendingRequest.timeout_id);
 
                 if (msg["error"] !== undefined) {
-                    if (msg["error"].message !== "user ack timeout") {
+                    if (msg["error"]?.message !== "user ack timeout") {
                         Logger.info("dmiot error response", msg);
                     } else {
                         Logger.trace("dmiot error response", msg);
@@ -139,7 +141,7 @@ class DmiotSocket {
 
                     pendingRequest.reject(
                         new MiioErrorResponseRobotFirmwareError(
-                            msg["error"].message,
+                            msg["error"]?.message,
                             msg["error"]
                         )
                     );
@@ -252,7 +254,7 @@ class DmiotSocket {
             Object.values(this.pendingRequests).forEach(pendingRequest => {
                 clearTimeout(pendingRequest.timeout_id);
             });
-            this.pendingRequests = {};
+            this.pendingRequests = Object.create(null);
 
             this.connection?.destroy();
 

@@ -47,11 +47,22 @@ class DmiotCodec {
             const payload = this.buffer.subarray(DmiotCodec.HEADER_LENGTH, DmiotCodec.HEADER_LENGTH + payloadLength);
             this.buffer = this.buffer.subarray(frameLength);
 
+            let message;
             try {
-                messages.push(JSON.parse(payload.toString()));
+                message = JSON.parse(payload.toString());
             } catch (e) {
                 Logger.warn("Received invalid JSON from dmiot client", payload.toString());
+
+                continue;
             }
+
+            if (message === null || typeof message !== "object" || Array.isArray(message)) {
+                Logger.warn("Received dmiot frame that is not a JSON object", payload.toString());
+
+                continue;
+            }
+
+            messages.push(message);
         }
 
         return messages;
