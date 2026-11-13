@@ -178,20 +178,40 @@ class WebServer {
         const tlsCredentials = this.loadTLSCredentials();
 
         if (tlsCredentials) {
-            const httpsPort = this.webserverConfig.https.port;
+            let httpsPort = this.webserverConfig.https.port;
             const httpsServer = https.createServer(tlsCredentials, this.app);
 
             let httpsListening = false;
 
             httpsServer.on("error", (err) => {
-                Logger.error(`HTTPS Webserver failed on port ${httpsPort}. Serving plain HTTP on port ${self.port} instead.`, err);
                 httpsListening = false;
+
+                /*
+                    The Midea dummycloud listens on port 443 of a loopback address.
+                    Then, Linux refuses a listener on port 443 of all addresses.
+                 */
+                if (
+                    /** @type {Error & {code?: string}} */ (err).code === "EADDRINUSE" &&
+                    httpsPort !== WebServer.HTTPS_FALLBACK_PORT &&
+                    self.port !== WebServer.HTTPS_FALLBACK_PORT
+                ) {
+                    Logger.warn(`HTTPS port ${httpsPort} is in use. Trying port ${WebServer.HTTPS_FALLBACK_PORT} instead.`);
+
+                    httpsPort = WebServer.HTTPS_FALLBACK_PORT;
+                    httpsServer.listen(httpsPort);
+
+                    return;
+                }
+
+                Logger.error(`HTTPS Webserver failed on port ${httpsPort}. Serving plain HTTP on port ${self.port} instead.`, err);
             });
 
-            httpsServer.listen(httpsPort, function() {
+            httpsServer.on("listening", () => {
                 httpsListening = true;
                 Logger.info("HTTPS Webserver running on port", httpsPort);
             });
+
+            httpsServer.listen(httpsPort);
 
             const redirectServer = http.createServer((req, res) => {
                 if (httpsListening) {
@@ -366,5 +386,7 @@ class WebServer {
         this.openApiSpec = spec;
     }
 }
+
+WebServer.HTTPS_FALLBACK_PORT = 8443;
 
 module.exports = WebServer;
