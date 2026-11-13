@@ -26,10 +26,6 @@ Being a generic abstraction, Valetudo won't be a "feature-complete" reimplementa
 mean inheriting all of their technical debt.
 It does however support everything you need to have a proper, modern, cloud-free robot vacuum.
 
-While being published under the Apache-2.0 license and clearly being FOSS, the governance and development model Valetudo operates under
-is to be understood as that of "Freeware with source available". It is evidently much more than that when it comes to the freedoms provided by true FOSS,
-but it is not the FOSS that only knows "community-driven" you might be used to from corporate co-option and come to expect when you read "FOSS".
-
 For more information, check out the [newcomer guide](https://valetudo.cloud/pages/general/newcomer-guide/),
 the [getting started guide](https://valetudo.cloud/pages/general/getting-started/) 
 and also the docs in general at [https://valetudo.cloud](https://valetudo.cloud)
@@ -98,13 +94,6 @@ Therefore, a garden being build with a specific vision does not take away the ab
 3. [So you've been banned?](https://valetudo.cloud/pages/general/so-youve-been-banned/)
 
 Any other mediums such as IRC, Matrix or Reddit are unofficial channels not connected to the project and might contain incorrect or outdated information.
-
-The [Valetudo Premium Support System VPSS](https://github.com/Hypfer/HotlineValetudo) is available via [\+495021 / 9039940](tel:+4950219039940).<br/>
-For privacy reasons, caller ID suppression via prefixing with `#31#` is advised, but you do you.
-
-## Contributing
-
-Make sure to familiarize yourself with the [./CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ## Stars
 
