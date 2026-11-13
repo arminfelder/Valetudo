@@ -11,7 +11,13 @@
             "username": "valetudo",
             "password": "valetudo"
         },
-        "blockExternalAccess": true
+        "blockExternalAccess": true,
+        "https": {
+            "enabled": true,
+            "port": 443,
+            "certPath": "",
+            "keyPath": ""
+        }
     },
     "mqtt": {
         "enabled": false,
