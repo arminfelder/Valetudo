@@ -32,6 +32,8 @@ class MiioSocket {
         this.nextId = 1; //Only used by cloud sockets
 
         /**
+         * The remote side supplies the keys. A null prototype prevents matches with inherited property names.
+         *
          * @type {Object.<string, {
          *          timeout_id?: NodeJS.Timeout,
          *          onTimeoutCallback: () => void,
@@ -40,7 +42,7 @@ class MiioSocket {
          *          method: string
          *      }>}
          */
-        this.pendingRequests = {};
+        this.pendingRequests = Object.create(null);
         this.onIncomingRequestMessage = options.onIncomingRequestMessage;
         this.onConnected = options.onConnected;
         this.connected = false;
@@ -113,7 +115,7 @@ class MiioSocket {
                                 "user ack timeout" is sent by the miio_client if the robots business logic
                                 fails to respond to a request from us in a timely fashion
                              */
-                            if (msg["error"].message !== "user ack timeout") {
+                            if (msg["error"]?.message !== "user ack timeout") {
                                 Logger.info("Miio error response", msg);
                             } else {
                                 Logger.trace("Miio error response", msg);
@@ -121,7 +123,7 @@ class MiioSocket {
 
                             pendingRequestWithMatchingMsgId.reject(
                                 new MiioErrorResponseRobotFirmwareError(
-                                    msg["error"].message,
+                                    msg["error"]?.message,
                                     msg["error"]
                                 )
                             );

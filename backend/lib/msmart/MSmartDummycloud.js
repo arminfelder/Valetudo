@@ -46,6 +46,8 @@ class MSmartDummycloud {
         this.mapCommandTopic = "map/unknown/down";
 
         /**
+         * The robot supplies the keys. A null prototype prevents matches with inherited property names.
+         *
          * @type {Object.<string, {
          *          timeout_id?: NodeJS.Timeout,
          *          onTimeoutCallback: () => void,
@@ -54,7 +56,7 @@ class MSmartDummycloud {
          *          command: string
          *      }>}
          */
-        this.pendingRequests = {};
+        this.pendingRequests = Object.create(null);
 
         this.setupMQTT();
         this.setupHTTP();
