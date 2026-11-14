@@ -413,7 +413,9 @@ class MiioValetudoRobot extends ValetudoRobot {
     onIncomingCloudMessage(msg) {
         switch (msg.method) {
             case "_sync.gen_tmp_presigned_url":
+            case "_sync.gen_tmp_url_v3":
             case "_sync.gen_presigned_url":
+            case "_sync.gen_presigned_url_v3":
             case "_sync.batch_gen_room_up_url": {
                 const key = msg.params?.suffix ?? "urls";
                 const indices = msg.params?.indexes ?? [0, 1, 2, 3];
@@ -423,7 +425,8 @@ class MiioValetudoRobot extends ValetudoRobot {
                 const expires = Math.floor(new Date(new Date().getTime() + 15 * 60000).getTime() / 1000); //+15min;
                 let url = `${this.mapUploadUrlPrefix}/api/miio/fds_upload_handler?ts=${process.hrtime().toString().replace(/,/g, "")}&suffix=${key}&Expires=${expires}`;
 
-                if (msg.method === "_sync.gen_tmp_presigned_url") {
+                // dreame fw 4.3.9_2199 parses the _v3 replies with the same code as the legacy ones
+                if (msg.method === "_sync.gen_tmp_presigned_url" || msg.method === "_sync.gen_tmp_url_v3") {
                     result[key] = indices.map(i => {
                         return {
                             url: url + "&index=" + i + "&method=" + msg.method,
@@ -432,7 +435,7 @@ class MiioValetudoRobot extends ValetudoRobot {
                             expires_time: expires
                         };
                     });
-                } else if (msg.method === "_sync.gen_presigned_url") {
+                } else if (msg.method === "_sync.gen_presigned_url" || msg.method === "_sync.gen_presigned_url_v3") {
                     result[key] = {
                         url: url + "&method=" + msg.method,
                         ok: true,
@@ -453,6 +456,13 @@ class MiioValetudoRobot extends ValetudoRobot {
 
                 return true;
             }
+            case "_sync.update_vacuum_mapinfo":
+                // dreame firmwares resend this until it is acknowledged
+                this.sendCloud({id: msg.id, result: "ok"}).catch((reason => {
+                    Logger.error("Failed to acknowledge map info update:", reason);
+                }));
+
+                return true;
         }
         return false;
     }
