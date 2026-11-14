@@ -39,6 +39,7 @@ const options = {
             {name: "MapSegmentationCapability", description: "Map segment cleaning capability"},
             {name: "ManualControlCapability", description: "Manual control capability"},
             {name: "DoNotDisturbCapability", description: "Do-not-disturb configuration capability"},
+            {name: "DoNotDisturbScheduleCapability", description: "Do-not-disturb schedule capability"},
             {name: "ConsumableMonitoringCapability", description: "Consumable monitoring capability"},
             {name: "LocateCapability", description: "Robot locate capability"},
             {name: "GoToLocationCapability", description: "Go-to location capability"},

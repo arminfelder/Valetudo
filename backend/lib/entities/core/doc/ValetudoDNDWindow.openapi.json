@@ -1,0 +1,50 @@
+{
+  "components": {
+    "schemas": {
+      "ValetudoDNDWindow": {
+        "type": "object",
+        "required": ["enabled", "start", "end", "dow"],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Leave out to add a new window"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "start": {
+            "$ref": "#/components/schemas/ScheduleTimeDTO"
+          },
+          "end": {
+            "$ref": "#/components/schemas/ScheduleTimeDTO"
+          },
+          "dow": {
+            "type": "array",
+            "description": "Days of the week in UTC, 0 = Sunday. An empty array means once.",
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 6
+            }
+          },
+          "metaData": {
+            "type": "object"
+          }
+        }
+      },
+      "DoNotDisturbScheduleDTO": {
+        "type": "object",
+        "required": ["windows"],
+        "properties": {
+          "windows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValetudoDNDWindow"
+            }
+          }
+        }
+      }
+    }
+  }
+}

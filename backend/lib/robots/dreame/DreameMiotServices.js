@@ -398,6 +398,14 @@ module.exports = {
                 },
                 END_TIME: {
                     PIID: 3
+                },
+                TASKS: {
+                    PIID: 4
+                }
+            },
+            ACTIONS: {
+                DELETE_TASKS: {
+                    AIID: 1
                 }
             }
         },

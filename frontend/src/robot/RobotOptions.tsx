@@ -1026,6 +1026,7 @@ const RobotOptions = (): React.ReactElement => {
         speakerTestCapabilitySupported,
         voicePackManagementCapabilitySupported,
         doNotDisturbCapabilitySupported,
+        doNotDisturbScheduleCapabilitySupported,
 
         quirksCapabilitySupported,
     ] = useCapabilitiesSupported(
@@ -1057,6 +1058,7 @@ const RobotOptions = (): React.ReactElement => {
         Capability.SpeakerTest,
         Capability.VoicePackManagement,
         Capability.DoNotDisturb,
+        Capability.DoNotDisturbSchedule,
 
         Capability.Quirks
     );
@@ -1249,7 +1251,7 @@ const RobotOptions = (): React.ReactElement => {
         if (
             speakerVolumeControlCapabilitySupported || speakerTestCapabilitySupported ||
             voicePackManagementCapabilitySupported ||
-            doNotDisturbCapabilitySupported
+            doNotDisturbCapabilitySupported || doNotDisturbScheduleCapabilitySupported
         ) {
             const label = [];
 
@@ -1257,7 +1259,7 @@ const RobotOptions = (): React.ReactElement => {
                 label.push("Voice packs");
             }
 
-            if (doNotDisturbCapabilitySupported) {
+            if (doNotDisturbCapabilitySupported || doNotDisturbScheduleCapabilitySupported) {
                 label.push("Do not disturb");
             }
 
@@ -1294,6 +1296,7 @@ const RobotOptions = (): React.ReactElement => {
         speakerTestCapabilitySupported,
         voicePackManagementCapabilitySupported,
         doNotDisturbCapabilitySupported,
+        doNotDisturbScheduleCapabilitySupported,
 
         quirksCapabilitySupported,
     ]);

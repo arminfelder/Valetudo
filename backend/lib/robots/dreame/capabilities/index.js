@@ -21,6 +21,7 @@ module.exports = {
     DreameConsumableMonitoringCapability: require("./DreameConsumableMonitoringCapability"),
     DreameCurrentStatisticsCapability: require("./DreameCurrentStatisticsCapability"),
     DreameDoNotDisturbCapability: require("./DreameDoNotDisturbCapability"),
+    DreameDoNotDisturbScheduleCapability: require("./DreameDoNotDisturbScheduleCapability"),
     DreameFanSpeedControlCapability: require("./DreameFanSpeedControlCapability"),
     DreameFloorMaterialDirectionAwareNavigationControlCapability: require("./DreameFloorMaterialDirectionAwareNavigationControlCapability"),
     DreameHighResolutionManualControlCapability: require("./DreameHighResolutionManualControlCapability"),

@@ -1,0 +1,110 @@
+{
+  "/api/v2/robot/capabilities/DoNotDisturbScheduleCapability": {
+    "get": {
+      "tags": [
+        "DoNotDisturbScheduleCapability"
+      ],
+      "summary": "Get all do-not-disturb windows",
+      "responses": {
+        "200": {
+          "description": "Ok",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DoNotDisturbScheduleDTO"
+              },
+              "examples": {
+                "weekdayNights": {
+                  "description": "Quiet from 21:00 to 07:00 UTC on Monday to Friday",
+                  "value": {
+                    "windows": [
+                      {
+                        "id": 1,
+                        "enabled": true,
+                        "start": {"hour": 21, "minute": 0},
+                        "end": {"hour": 7, "minute": 0},
+                        "dow": [1, 2, 3, 4, 5],
+                        "metaData": {}
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "put": {
+      "tags": [
+        "DoNotDisturbScheduleCapability"
+      ],
+      "summary": "Replace all do-not-disturb windows",
+      "description": "Windows without an id are added. Existing windows that are not in the list are removed.",
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/DoNotDisturbScheduleDTO"
+            },
+            "examples": {
+              "addWeekend": {
+                "description": "Keep window 1 and add a weekend window",
+                "value": {
+                  "windows": [
+                    {
+                      "id": 1,
+                      "enabled": true,
+                      "start": {"hour": 21, "minute": 0},
+                      "end": {"hour": 7, "minute": 0},
+                      "dow": [1, 2, 3, 4, 5]
+                    },
+                    {
+                      "enabled": true,
+                      "start": {"hour": 23, "minute": 0},
+                      "end": {"hour": 9, "minute": 0},
+                      "dow": [0, 6]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "$ref": "#/components/responses/200"
+        },
+        "400": {
+          "$ref": "#/components/responses/400"
+        }
+      }
+    }
+  },
+  "/api/v2/robot/capabilities/DoNotDisturbScheduleCapability/properties": {
+    "get": {
+      "tags": [
+        "DoNotDisturbScheduleCapability"
+      ],
+      "summary": "Get various capability-related properties",
+      "responses": {
+        "200": {
+          "description": "Ok",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "maxWindows": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

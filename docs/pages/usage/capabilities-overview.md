@@ -81,6 +81,12 @@ The exact behaviour is dependent on your vendor.
 One usual behaviour is that the robot won't continue a cleanup that has been interrupted due to an empty battery until
 DND is over. On some robots it also dims the LEDs during the DND phase.
 
+## DoNotDisturbScheduleCapability
+
+This capability enables you to set additional DND timespans, each with its own days of the week.
+A timespan without days runs once and then turns itself off.
+Times and days are in UTC. The single timespan of the DoNotDisturbCapability is not part of this list.
+
 ## FanSpeedControlCapability
 
 This capability enables you to set the suction power of your robot.
