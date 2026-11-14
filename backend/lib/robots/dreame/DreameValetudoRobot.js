@@ -4,6 +4,7 @@ const Logger = require("../../Logger");
 const LinuxWifiScanCapability = require("../common/linuxCapabilities/LinuxWifiScanCapability");
 const miioCapabilities = require("../common/miioCapabilities");
 
+const DreameDmiotWifiConfigurationCapability = require("./capabilities/DreameDmiotWifiConfigurationCapability");
 const DreameMapParser = require("./DreameMapParser");
 const DreameMiotHelper = require("./DreameMiotHelper");
 
@@ -29,6 +30,7 @@ class DreameValetudoRobot extends MiioValetudoRobot {
      * @param {import("../../ValetudoEventStore")} options.valetudoEventStore
      * @param {object} [options.operationModes]
      * @param {number} [options.miotPostWriteDelay]
+     * @param {boolean} [options.useDmiotBridge]
      * @param {object} options.miotServices
      * @param {object} options.miotServices.MAP
      * @param {number} options.miotServices.MAP.SIID
@@ -46,10 +48,17 @@ class DreameValetudoRobot extends MiioValetudoRobot {
         this.operationModes = options.operationModes ?? {};
         this.miotServices = options.miotServices;
 
-        this.registerCapability(new miioCapabilities.MiioWifiConfigurationCapability({
-            robot: this,
-            networkInterface: "wlan0"
-        }));
+        if (options.useDmiotBridge === true) {
+            this.registerCapability(new DreameDmiotWifiConfigurationCapability({
+                robot: this,
+                networkInterface: "wlan0"
+            }));
+        } else {
+            this.registerCapability(new miioCapabilities.MiioWifiConfigurationCapability({
+                robot: this,
+                networkInterface: "wlan0"
+            }));
+        }
 
         if (this.config.get("embedded") === true) {
             this.registerCapability(new LinuxWifiScanCapability({
