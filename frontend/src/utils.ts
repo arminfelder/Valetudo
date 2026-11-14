@@ -132,7 +132,10 @@ const consumableTypeMapping: Record<ConsumableType, string> = {
     "cleaning": "Cleaning",
     "mop": "Mop",
     "detergent": "Detergent",
-    "bin": "Bin"
+    "bin": "Bin",
+    "silver_ion": "Silver Ion",
+    "deodorant": "Deodorant",
+    "scale_inhibitor": "Scale Inhibitor"
 };
 
 const consumableSubtypeMapping: Record<ConsumableSubType, string> = {
@@ -145,6 +148,8 @@ const consumableSubtypeMapping: Record<ConsumableSubType, string> = {
     "dock": "Dock",
     "sensor": "Sensor",
     "wheel": "Wheel",
+    "wash_tray": "Wash Tray",
+    "dirty_water_tank": "Dirty Water Tank",
 };
 
 export const getConsumableName = (type: ConsumableType, subType?: ConsumableSubType): string => {

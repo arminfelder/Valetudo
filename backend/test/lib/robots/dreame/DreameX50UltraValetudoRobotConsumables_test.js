@@ -56,7 +56,12 @@ describe("DreameX50UltraValetudoRobot consumables", () => {
                 "cleaning/sensor/minutes",
                 "mop/all/minutes",
                 "detergent/dock/percent",
-                "cleaning/wheel/minutes"
+                "cleaning/wheel/minutes",
+                "silver_ion/dock/minutes",
+                "deodorant/dock/minutes",
+                "scale_inhibitor/dock/minutes",
+                "cleaning/wash_tray/minutes",
+                "cleaning/dirty_water_tank/minutes"
             ]
         );
     });
@@ -106,6 +111,93 @@ describe("DreameX50UltraValetudoRobot consumables", () => {
         assert.strictEqual(consumables.some(c => {
             return c.type === ValetudoConsumable.TYPE.DETERGENT;
         }), true);
+    });
+
+    it("polls piid 1 of the dock consumables and converts days and hours to minutes", async () => {
+        sentCommands = [];
+        respond = (method, args) => {
+            return args.map(p => {
+                return Object.assign({}, p, {code: 0, value: {19: 300, 25: 12, 26: 100, 29: 1, 31: 0}[p.siid] ?? 10});
+            });
+        };
+
+        const consumables = await robot.capabilities.ConsumableMonitoringCapability.getConsumables();
+        const polled = sentCommands.find(c => {
+            return c.method === "get_properties";
+        }).args.map(p => {
+            return `${p.siid}.${p.piid}`;
+        });
+
+        for (const siid of [19, 25, 26, 29, 31]) {
+            assert.ok(polled.includes(`${siid}.1`), `siid ${siid} piid 1 is polled`);
+        }
+
+        const byName = Object.fromEntries(consumables.map(c => {
+            return [`${c.type}/${c.subType}`, c.remaining];
+        }));
+
+        assert.deepStrictEqual(byName["silver_ion/dock"], {value: 300 * 24 * 60, unit: "minutes"});
+        assert.deepStrictEqual(byName["deodorant/dock"], {value: 24 * 60, unit: "minutes"});
+        assert.deepStrictEqual(byName["scale_inhibitor/dock"], {value: 0, unit: "minutes"});
+        assert.deepStrictEqual(byName["cleaning/wash_tray"], {value: 12 * 60, unit: "minutes"});
+        assert.deepStrictEqual(byName["cleaning/dirty_water_tank"], {value: 100 * 60, unit: "minutes"});
+    });
+
+    it("leaves out dock consumables that the firmware reports as not installed (-2)", async () => {
+        respond = (method, args) => {
+            return args.map(p => {
+                return Object.assign({}, p, {code: 0, value: [19, 29].includes(p.siid) ? -2 : 10});
+            });
+        };
+
+        const consumables = await robot.capabilities.ConsumableMonitoringCapability.getConsumables();
+        const types = consumables.map(c => {
+            return c.type;
+        });
+
+        assert.strictEqual(types.includes(ValetudoConsumable.TYPE.SILVER_ION), false);
+        assert.strictEqual(types.includes(ValetudoConsumable.TYPE.DEODORANT), false);
+        assert.strictEqual(types.includes(ValetudoConsumable.TYPE.SCALE_INHIBITOR), true);
+    });
+
+    it("resets each dock consumable with action 1 of its service", async () => {
+        sentCommands = [];
+        respond = () => {
+            return {code: 0};
+        };
+
+        const cap = robot.capabilities.ConsumableMonitoringCapability;
+        await cap.resetConsumable(ValetudoConsumable.TYPE.SILVER_ION, ValetudoConsumable.SUB_TYPE.DOCK);
+        await cap.resetConsumable(ValetudoConsumable.TYPE.DEODORANT, ValetudoConsumable.SUB_TYPE.DOCK);
+        await cap.resetConsumable(ValetudoConsumable.TYPE.SCALE_INHIBITOR, ValetudoConsumable.SUB_TYPE.DOCK);
+        await cap.resetConsumable(ValetudoConsumable.TYPE.CLEANING, ValetudoConsumable.SUB_TYPE.WASH_TRAY);
+        await cap.resetConsumable(ValetudoConsumable.TYPE.CLEANING, ValetudoConsumable.SUB_TYPE.DIRTY_WATER_TANK);
+
+        assert.deepStrictEqual(
+            sentCommands.map(c => {
+                return [c.method, c.args.siid, c.args.aiid];
+            }),
+            [["action", 19, 1], ["action", 29, 1], ["action", 31, 1], ["action", 25, 1], ["action", 26, 1]]
+        );
+    });
+
+    it("still rejects a reset of a consumable the robot does not have", async () => {
+        await assert.rejects(
+            robot.capabilities.ConsumableMonitoringCapability.resetConsumable(ValetudoConsumable.TYPE.SILVER_ION, ValetudoConsumable.SUB_TYPE.MAIN),
+            /No such consumable/
+        );
+    });
+
+    it("parses pushed property changes of the dock consumables", () => {
+        const consumable = robot.capabilities.ConsumableMonitoringCapability.parseConsumablesMessage({siid: 31, piid: 1, value: 1095});
+
+        assert.strictEqual(consumable.type, ValetudoConsumable.TYPE.SCALE_INHIBITOR);
+        assert.deepStrictEqual(consumable.remaining, {value: 1095 * 24 * 60, unit: "minutes"});
+        assert.strictEqual(
+            robot.capabilities.ConsumableMonitoringCapability.parseConsumablesMessage({siid: 31, piid: 2, value: 100}),
+            undefined,
+            "piid 2 (percent) is not used"
+        );
     });
 
     it("resets the mop pad and the detergent with action 1 of their services", async () => {

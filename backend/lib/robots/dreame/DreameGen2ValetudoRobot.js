@@ -282,6 +282,11 @@ class DreameGen2ValetudoRobot extends DreameValetudoRobot {
                         case MIOT_SERVICES.MISC_STATES.SIID:
                         case MIOT_SERVICES.AUTO_EMPTY_DOCK.SIID:
                         case MIOT_SERVICES.ROLLER_MOP_FLUFFER.SIID:
+                        case MIOT_SERVICES.SILVER_ION.SIID:
+                        case MIOT_SERVICES.DOCK_WASH_TRAY.SIID:
+                        case MIOT_SERVICES.DOCK_DIRTY_WATER_TANK.SIID:
+                        case MIOT_SERVICES.DEODORANT.SIID:
+                        case MIOT_SERVICES.SCALE_INHIBITOR.SIID:
                             this.parseAndUpdateState([e]);
                             break;
                         case MIOT_SERVICES.DEVICE.SIID:
@@ -297,13 +302,10 @@ class DreameGen2ValetudoRobot extends DreameValetudoRobot {
                         case MIOT_SERVICES.TOTAL_STATISTICS.SIID:
                             //Intentionally left blank (for now?)
                             break;
-                        case MIOT_SERVICES.SILVER_ION.SIID:
                         case 21: //Something else that also seems to be some kind of consumable?
                             //Intentionally ignored for now, because I have no idea what that should be or where it could be located
                             //TODO: figure out
                             break;
-                        case 26: // Internal dirty water tank consumable?
-                        case 31: // Scale inhibitor consumable
                         case 33: // Some filter consumable?
                         case 36: // Washboard, maybe?
                             // Intentionally ignored for now
@@ -654,6 +656,11 @@ class DreameGen2ValetudoRobot extends DreameValetudoRobot {
                 case MIOT_SERVICES.DETERGENT.SIID:
                 case MIOT_SERVICES.WHEEL.SIID:
                 case MIOT_SERVICES.ROLLER_MOP_FLUFFER.SIID:
+                case MIOT_SERVICES.SILVER_ION.SIID:
+                case MIOT_SERVICES.DOCK_WASH_TRAY.SIID:
+                case MIOT_SERVICES.DOCK_DIRTY_WATER_TANK.SIID:
+                case MIOT_SERVICES.DEODORANT.SIID:
+                case MIOT_SERVICES.SCALE_INHIBITOR.SIID:
                     if (this.capabilities[ConsumableMonitoringCapability.TYPE]) {
                         this.capabilities[ConsumableMonitoringCapability.TYPE].parseConsumablesMessage(elem);
                     }

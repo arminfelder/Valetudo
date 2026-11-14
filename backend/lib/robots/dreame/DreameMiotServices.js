@@ -533,11 +533,11 @@ module.exports = {
         SILVER_ION: {
             SIID: 19,
             PROPERTIES: {
-                TIME_LEFT: { //Hours
-                    PIID: 2
+                DAYS_LEFT: { //Calendar days, not hours of use
+                    PIID: 1
                 },
                 PERCENT_LEFT: {
-                    PIID: 1
+                    PIID: 2
                 }
             },
             ACTIONS: {
@@ -716,6 +716,70 @@ module.exports = {
                     PIID: 1
                 },
                 TIME_LEFT: { //Hours
+                    PIID: 2
+                }
+            },
+            ACTIONS: {
+                RESET: {
+                    AIID: 1
+                }
+            }
+        },
+        DOCK_WASH_TRAY: {
+            SIID: 25,
+            PROPERTIES: {
+                TIME_LEFT: { //Hours
+                    PIID: 1
+                },
+                PERCENT_LEFT: {
+                    PIID: 2
+                }
+            },
+            ACTIONS: {
+                RESET: {
+                    AIID: 1
+                }
+            }
+        },
+        DOCK_DIRTY_WATER_TANK: {
+            SIID: 26,
+            PROPERTIES: {
+                TIME_LEFT: { //Hours
+                    PIID: 1
+                },
+                PERCENT_LEFT: {
+                    PIID: 2
+                }
+            },
+            ACTIONS: {
+                RESET: {
+                    AIID: 1
+                }
+            }
+        },
+        DEODORANT: {
+            SIID: 29,
+            PROPERTIES: {
+                DAYS_LEFT: { //Calendar days, not hours of use
+                    PIID: 1
+                },
+                PERCENT_LEFT: {
+                    PIID: 2
+                }
+            },
+            ACTIONS: {
+                RESET: {
+                    AIID: 1
+                }
+            }
+        },
+        SCALE_INHIBITOR: {
+            SIID: 31,
+            PROPERTIES: {
+                DAYS_LEFT: { //Calendar days, not hours of use
+                    PIID: 1
+                },
+                PERCENT_LEFT: {
                     PIID: 2
                 }
             },

@@ -206,8 +206,8 @@ export interface MapSegmentMaterialControlProperties {
     supportedMaterials: Array<MapSegmentMaterial>;
 }
 
-export type ConsumableType = "filter" | "brush" | "mop" | "detergent" | "bin" | "cleaning" ;
-export type ConsumableSubType = "none" | "all" | "main" | "secondary" | "side_left" | "side_right" | "dock" | "sensor" | "wheel";
+export type ConsumableType = "filter" | "brush" | "mop" | "detergent" | "bin" | "cleaning" | "silver_ion" | "deodorant" | "scale_inhibitor";
+export type ConsumableSubType = "none" | "all" | "main" | "secondary" | "side_left" | "side_right" | "dock" | "sensor" | "wheel" | "wash_tray" | "dirty_water_tank";
 export type ConsumableUnit = "minutes" | "percent";
 
 export interface ConsumableState {
