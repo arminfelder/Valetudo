@@ -441,6 +441,18 @@ class DreameGen2ValetudoRobot extends DreameValetudoRobot {
         return properties;
     }
 
+    onCloudConnected() {
+        super.onCloudConnected();
+
+        // Only the MQTT refresh polls the state. The robot pushes a value only when it changes.
+        // Without this poll, values that stay the same after a restart (e.g. a dock warning) never arrive.
+        setTimeout(() => {
+            this.pollState().catch(err => {
+                Logger.warn("Error while polling the initial state", err);
+            });
+        }, DreameGen2ValetudoRobot.INITIAL_STATE_POLL_DELAY);
+    }
+
     async pollState() {
         const response = await this.miotHelper.readProperties(this.statePropertiesToPoll);
 
@@ -962,5 +974,7 @@ DreameGen2ValetudoRobot.HIGH_RESOLUTION_WATER_GRADES = Object.freeze({
     [stateAttrs.PresetSelectionStateAttribute.INTENSITY.MAX]: 32,
 });
 
+
+DreameGen2ValetudoRobot.INITIAL_STATE_POLL_DELAY = 5000; // ms, same as the first map poll
 
 module.exports = DreameGen2ValetudoRobot;
