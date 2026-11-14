@@ -47,6 +47,14 @@ class DmiotDummycloud {
             case "local.query_time":
                 this.sendLocalTime();
                 return;
+            case "local.query_status":
+                // The dmiot daemon answers this itself. ava polls it every second until it knows the cloud state.
+                this.miioSocket.sendNotification({
+                    id: msg.id,
+                    method: "local.status",
+                    params: "cloud_connected"
+                });
+                return;
         }
 
         if (!this.onIncomingCloudMessage(msg)) {

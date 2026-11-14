@@ -158,6 +158,91 @@ describe("DmiotSocket", () => {
         await dmiotSocket.shutdown();
     });
 
+    it("keeps the robot connection when a second client connects", async () => {
+        let connectedCount = 0;
+        const {dmiotSocket, client} = await setup({
+            onConnected: () => {
+                connectedCount++;
+            }
+        });
+
+        const second = net.connect(/** @type {net.AddressInfo} */ (dmiotSocket.server.address()).port, "127.0.0.1");
+        await once(second, "connect");
+        await new Promise(resolve => {
+            setTimeout(resolve, 50);
+        });
+
+        assert.strictEqual(client.destroyed, false);
+        assert.strictEqual(dmiotSocket.connections.size, 2);
+        assert.strictEqual(connectedCount, 1);
+
+        client.on("data", data => {
+            const request = JSON.parse(data.toString());
+
+            client.write(DmiotCodec.encodeFrame({id: request.id, result: ["ok"]}));
+        });
+        const secondReceived = once(second, "data");
+
+        const result = await dmiotSocket.sendMessage({method: "get_properties", params: []});
+
+        assert.deepStrictEqual(result, ["ok"]);
+        assert.strictEqual(JSON.parse((await secondReceived)[0].toString()).method, "get_properties");
+
+        second.destroy();
+        await new Promise(resolve => {
+            setTimeout(resolve, 50);
+        });
+        assert.strictEqual(dmiotSocket.connected, true);
+
+        client.destroy();
+        await new Promise(resolve => {
+            setTimeout(resolve, 50);
+        });
+        assert.strictEqual(dmiotSocket.connected, false);
+
+        await dmiotSocket.shutdown();
+    });
+
+    it("calls onConnected again after all clients disconnected and the robot reconnects", async () => {
+        let connectedCount = 0;
+        const {dmiotSocket, client} = await setup({
+            onConnected: () => {
+                connectedCount++;
+            }
+        });
+
+        client.destroy();
+        await new Promise(resolve => {
+            setTimeout(resolve, 50);
+        });
+
+        const reconnected = net.connect(/** @type {net.AddressInfo} */ (dmiotSocket.server.address()).port, "127.0.0.1");
+        await once(reconnected, "connect");
+        await new Promise(resolve => {
+            setTimeout(resolve, 50);
+        });
+
+        assert.strictEqual(connectedCount, 2);
+        assert.strictEqual(dmiotSocket.connected, true);
+
+        reconnected.destroy();
+        await dmiotSocket.shutdown();
+    });
+
+    it("forwards robot messages that carry a method and a result but match no pending request", async () => {
+        const {dmiotSocket, client, incoming} = await setup();
+
+        client.write(DmiotCodec.encodeFrame({id: 90, method: "call.check", result: "ok"}));
+        await new Promise(resolve => {
+            setTimeout(resolve, 50);
+        });
+
+        assert.deepStrictEqual(incoming, [{id: 90, method: "call.check", result: "ok"}]);
+
+        client.destroy();
+        await dmiotSocket.shutdown();
+    });
+
     it("keeps retrying to listen while the port is in use", async () => {
         const blocker = net.createServer();
         blocker.listen(0, "127.0.0.1");

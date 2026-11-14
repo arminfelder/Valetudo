@@ -57,6 +57,11 @@ describe("DmiotDummycloud", () => {
         assert.ok(Number.isInteger(time.params));
         assert.ok(Math.abs(time.params - Date.now() / 1000) < 5);
 
+        client.write(DmiotCodec.encodeFrame({id: 4149, method: "local.query_status"}));
+        const [queriedStatus] = await readMessages(client, 1);
+
+        assert.deepStrictEqual(queriedStatus, {id: 4149, method: "local.status", params: "cloud_connected"});
+
         client.write(DmiotCodec.encodeFrame({method: "_otc.info", params: {}}));
         client.write(DmiotCodec.encodeFrame({id: 5, method: "properties_changed", params: []}));
         await new Promise(resolve => {
