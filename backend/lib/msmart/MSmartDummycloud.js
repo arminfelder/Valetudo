@@ -173,8 +173,8 @@ class MSmartDummycloud {
 
         app.get("/", (req, res, next) => {
             if (
-                req.hostname.endsWith("ipify.org") ||
-                req.hostname.endsWith("ipify.cn") ||
+                MSmartDummycloud.IS_HOST_OR_SUBDOMAIN(req.hostname, "ipify.org") ||
+                MSmartDummycloud.IS_HOST_OR_SUBDOMAIN(req.hostname, "ipify.cn") ||
                 req.hostname === "127.000.13.37"
             ) {
                 Logger.debug(`Handling IP lookup request for ${req.hostname}.`);
@@ -775,6 +775,15 @@ class MSmartDummycloud {
         Logger.debug("MSmartDummycloud shutdown done");
     }
 }
+
+/**
+ * @param {string} hostname
+ * @param {string} domain
+ * @returns {boolean}
+ */
+MSmartDummycloud.IS_HOST_OR_SUBDOMAIN = function(hostname, domain) {
+    return hostname === domain || hostname.endsWith(`.${domain}`);
+};
 
 MSmartDummycloud.MQTT_PORT = 8883;
 MSmartDummycloud.HTTP_PORT = 443;

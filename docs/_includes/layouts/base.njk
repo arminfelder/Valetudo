@@ -40,7 +40,9 @@
         //if (document.referrer.includes("news.ycombinator")) {window.location.replace(document.referrer)}
         //
         // Same story, different platform
-        if (document.referrer.includes("youtube.com")) {window.location.replace(document.referrer)}
+        try {
+            if (/(^|\.)youtube\.com$/.test(new URL(document.referrer).hostname)) {window.location.replace(document.referrer)}
+        } catch (e) { /* empty or invalid referrer */ }
     </script>
 
     <link rel="stylesheet" href="/assets/fonts/ibm-plex-sans/400.css?v={{ buildTime }}">
