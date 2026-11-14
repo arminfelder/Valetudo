@@ -319,6 +319,8 @@ class DreameX50UltraValetudoRobot extends DreameGen4ValetudoRobot {
                 quirkFactory.getQuirk(DreameQuirkFactory.KNOWN_QUIRKS.SIDE_BRUSH_ON_CARPET),
                 quirkFactory.getQuirk(DreameQuirkFactory.KNOWN_QUIRKS.CARPET_FIRST),
                 quirkFactory.getQuirk(DreameQuirkFactory.KNOWN_QUIRKS.FAN_SPEED_ONE_TIME_TURBO),
+                quirkFactory.getQuirk(DreameQuirkFactory.KNOWN_QUIRKS.RESUME_AFTER_CHARGING),
+                quirkFactory.getQuirk(DreameQuirkFactory.KNOWN_QUIRKS.STAIN_DETECTION),
             ]
         }));
 

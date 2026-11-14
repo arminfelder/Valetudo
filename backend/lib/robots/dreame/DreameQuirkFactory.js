@@ -401,6 +401,94 @@ class DreameQuirkFactory {
                         }
                     }
                 });
+            case DreameQuirkFactory.KNOWN_QUIRKS.RESUME_AFTER_CHARGING:
+                return new Quirk({
+                    id: id,
+                    title: "Resume after charging",
+                    description: "When enabled, the robot continues an interrupted cleanup after it returned to the dock to recharge because of low battery.",
+                    options: ["on", "off"],
+                    getter: async () => {
+                        const res = await this.robot.miotHelper.readProperty(
+                            DreameMiotServices["GEN2"].VACUUM_2.SIID,
+                            DreameMiotServices["GEN2"].VACUUM_2.PROPERTIES.POST_CHARGE_CONTINUE.PIID
+                        );
+
+                        switch (res) {
+                            case 1:
+                                return "on";
+                            case 0:
+                                return "off";
+                            default:
+                                throw new Error(`Received invalid value ${res}`);
+                        }
+                    },
+                    setter: async (value) => {
+                        let val;
+
+                        switch (value) {
+                            case "on":
+                                val = 1;
+                                break;
+                            case "off":
+                                val = 0;
+                                break;
+                            default:
+                                throw new Error(`Received invalid value ${value}`);
+                        }
+
+                        return this.robot.miotHelper.writeProperty(
+                            DreameMiotServices["GEN2"].VACUUM_2.SIID,
+                            DreameMiotServices["GEN2"].VACUUM_2.PROPERTIES.POST_CHARGE_CONTINUE.PIID,
+                            val
+                        );
+                    }
+                });
+            case DreameQuirkFactory.KNOWN_QUIRKS.STAIN_DETECTION:
+                return new Quirk({
+                    id: id,
+                    title: "Stain detection",
+                    description: "When enabled, the robot uses its camera to detect stains and cleans them more thoroughly.",
+                    options: ["on", "off"],
+                    getter: async () => {
+                        const res = await this.robot.miotHelper.readProperty(
+                            DreameMiotServices["GEN2"].VACUUM_2.SIID,
+                            DreameMiotServices["GEN2"].VACUUM_2.PROPERTIES.MISC_TUNABLES.PIID
+                        );
+
+                        const deserializedResponse = DreameUtils.DESERIALIZE_MISC_TUNABLES(res);
+                        // Unlike most tunables, "off" is 2 and not 0
+                        switch (deserializedResponse.StainIdentify) {
+                            case 1:
+                                return "on";
+                            case 2:
+                                return "off";
+                            default:
+                                throw new Error(`Received invalid value ${deserializedResponse.StainIdentify}`);
+                        }
+                    },
+                    setter: async (value) => {
+                        let val;
+
+                        switch (value) {
+                            case "on":
+                                val = 1;
+                                break;
+                            case "off":
+                                val = 2;
+                                break;
+                            default:
+                                throw new Error(`Received invalid value ${value}`);
+                        }
+
+                        return this.robot.miotHelper.writeProperty(
+                            DreameMiotServices["GEN2"].VACUUM_2.SIID,
+                            DreameMiotServices["GEN2"].VACUUM_2.PROPERTIES.MISC_TUNABLES.PIID,
+                            DreameUtils.SERIALIZE_MISC_TUNABLES_SINGLE_TUNABLE({
+                                StainIdentify: val
+                            })
+                        );
+                    }
+                });
             case DreameQuirkFactory.KNOWN_QUIRKS.EDGE_EXTENSION_FREQUENCY:
                 return new Quirk({
                     id: id,
@@ -1119,7 +1207,9 @@ DreameQuirkFactory.KNOWN_QUIRKS = {
     DUSTBAG_DRYING: "9e194ec7-bc25-4187-8163-b796f213c3c3",
     HURDLE_CROSSING_MODE: "a8fcf6a3-80ed-4149-89ef-d81936b8e080",
     OBSTACLE_RETRY_CLEAN_LATER: "15f0a896-c563-4560-b897-a586bd33a312",
-    FAN_SPEED_ONE_TIME_TURBO: "017c40b7-dc24-48e8-a6e0-19d66528fa6d"
+    FAN_SPEED_ONE_TIME_TURBO: "017c40b7-dc24-48e8-a6e0-19d66528fa6d",
+    RESUME_AFTER_CHARGING: "e9fe6e29-78e8-4b0c-a341-2dfd7f563373",
+    STAIN_DETECTION: "6b19f0a1-c762-4e4d-9f55-5daf23f910de"
 };
 
 module.exports = DreameQuirkFactory;
