@@ -7,6 +7,7 @@ const miioCapabilities = require("../common/miioCapabilities");
 const DreameDmiotWifiConfigurationCapability = require("./capabilities/DreameDmiotWifiConfigurationCapability");
 const DreameMapParser = require("./DreameMapParser");
 const DreameMiotHelper = require("./DreameMiotHelper");
+const DreameMultiFloorMapCapability = require("./capabilities/DreameMultiFloorMapCapability");
 
 const AttachmentStateAttribute = require("../../entities/state/attributes/AttachmentStateAttribute");
 const AttributeSubscriber = require("../../entities/AttributeSubscriber");
@@ -44,6 +45,8 @@ class DreameValetudoRobot extends MiioValetudoRobot {
     constructor(options) {
         super(options);
         this.miotHelper = new DreameMiotHelper({robot: this, postWriteDelay: options.miotPostWriteDelay});
+        /** @type {{mapstr: Array<any>, curr_id: number} | undefined} */
+        this.lastUploadedMultiFloorMapList = undefined;
 
         this.operationModes = options.operationModes ?? {};
         this.miotServices = options.miotServices;
@@ -170,11 +173,22 @@ class DreameValetudoRobot extends MiioValetudoRobot {
                 data[0] === 0x7b || data[0] === 0x5b // 0x7b = "{" 0x5b = "["
             )
         ) {
-            Logger.trace("Received unhandled multi-map json", {
-                query: query,
-                params: params,
-                data: data.toString()
-            });
+            let parsed;
+            try {
+                parsed = JSON.parse(data.toString());
+            } catch (e) {
+                parsed = undefined;
+            }
+
+            if (DreameMultiFloorMapCapability.IS_MAP_LIST(parsed)) {
+                this.lastUploadedMultiFloorMapList = parsed;
+            } else {
+                Logger.trace("Received unhandled multi-map json", {
+                    query: query,
+                    params: params,
+                    data: data.toString()
+                });
+            }
         } else if (
             Buffer.isBuffer(data) &&
             (

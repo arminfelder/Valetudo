@@ -898,4 +898,6 @@ DreameMapParser.CONVERT_ANGLE_TO_VALETUDO = function(angle) {
 const HIDDEN_OBSTACLE_TYPES = ["200", "204"];
 const OBSTACLE_ID_NAMESPACE = "f90e13dc-3728-4267-bd90-43caa3f460e5";
 
+DreameMapParser.MAP_DATA_TYPES = MAP_DATA_TYPES;
+
 module.exports = DreameMapParser;

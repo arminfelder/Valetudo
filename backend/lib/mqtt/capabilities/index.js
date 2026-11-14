@@ -10,6 +10,7 @@ module.exports = {
     KeyLockCapabilityMqttHandle: require("./KeyLockCapabilityMqttHandle"),
     LocateCapabilityMqttHandle: require("./LocateCapabilityMqttHandle"),
     MapSegmentationCapabilityMqttHandle: require("./MapSegmentationCapabilityMqttHandle"),
+    MultiFloorMapCapabilityMqttHandle: require("./MultiFloorMapCapabilityMqttHandle"),
     ObstacleAvoidanceControlCapabilityMqttHandle: require("./ObstacleAvoidanceControlCapabilityMqttHandle"),
     PetObstacleAvoidanceControlCapabilityMqttHandle: require("./PetObstacleAvoidanceControlCapabilityMqttHandle"),
     PresetSelectionCapabilityMqttHandle: require("./PresetSelectionCapabilityMqttHandle"),

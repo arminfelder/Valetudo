@@ -18,6 +18,7 @@ import {
     Download as ValetudoMapDownloadIcon,
     EditNote as MapAnnotationsIcon,
     Videocam as SpectatorIcon,
+    Apartment as FloorMapsIcon,
 } from "@mui/icons-material";
 import React from "react";
 import ConfirmationDialog from "../components/ConfirmationDialog";
@@ -172,7 +173,9 @@ const MapManagement = (): React.ReactElement => {
         combinedVirtualRestrictionsCapabilitySupported,
         mapAnnotationsCapabilitySupported,
 
-        duststreamingCapabilitySupported
+        duststreamingCapabilitySupported,
+
+        multiFloorMapCapabilitySupported
     ] = useCapabilitiesSupported(
         Capability.PersistentMapControl,
         Capability.MappingPass,
@@ -184,7 +187,9 @@ const MapManagement = (): React.ReactElement => {
         Capability.CombinedVirtualRestrictions,
         Capability.MapAnnotations,
 
-        Capability.Duststreaming
+        Capability.Duststreaming,
+
+        Capability.MultiFloorMap
     );
 
     const {data: duststreamingConfiguration} = useDuststreamingConfigurationQuery({
@@ -215,6 +220,18 @@ const MapManagement = (): React.ReactElement => {
             if (mapResetCapabilitySupported) {
                 items.push(
                     <MapResetButtonItem key="mapReset"/>
+                );
+            }
+
+            if (multiFloorMapCapabilitySupported) {
+                items.push(
+                    <LinkListMenuItem
+                        key="floorMaps"
+                        url="/options/map_management/floor_maps"
+                        primaryLabel="Floor Maps"
+                        secondaryLabel="Store, select, rename and delete maps for several floors"
+                        icon={<FloorMapsIcon/>}
+                    />
                 );
             }
 
@@ -268,6 +285,7 @@ const MapManagement = (): React.ReactElement => {
         persistentMapControlCapabilitySupported,
         mappingPassCapabilitySupported,
         mapResetCapabilitySupported,
+        multiFloorMapCapabilitySupported,
 
         combinedVirtualRestrictionsCapabilitySupported,
         mapAnnotationsCapabilitySupported,

@@ -211,6 +211,29 @@ class DreameX50UltraValetudoRobot extends DreameGen4ValetudoRobot {
             ]
         }));
 
+        this.registerCapability(new capabilities.DreameMultiFloorMapCapability({
+            robot: this,
+            miot_actions: {
+                map_edit: {
+                    siid: DreameX50UltraValetudoRobot.MIOT_SERVICES.MAP.SIID,
+                    aiid: DreameX50UltraValetudoRobot.MIOT_SERVICES.MAP.ACTIONS.EDIT.AIID
+                }
+            },
+            miot_properties: {
+                mapDetails: {
+                    piid: DreameX50UltraValetudoRobot.MIOT_SERVICES.MAP.PROPERTIES.MAP_DETAILS.PIID
+                },
+                actionResult: {
+                    piid: DreameX50UltraValetudoRobot.MIOT_SERVICES.MAP.PROPERTIES.ACTION_RESULT.PIID
+                },
+                multiFloorEnabled: {
+                    siid: DreameX50UltraValetudoRobot.MIOT_SERVICES.MAP.SIID,
+                    piid: DreameX50UltraValetudoRobot.MIOT_SERVICES.MAP.PROPERTIES.MULTI_FLOOR_ENABLED.PIID
+                }
+            },
+            mapListPath: "/data/log/map_info.bin"
+        }));
+
         this.registerCapability(new capabilities.DreameMapAnnotationsCapability({
             robot: this,
             supportedAnnotationTypes: [

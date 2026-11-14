@@ -48,6 +48,7 @@ module.exports = {
     DreameMopMappingPassCapability: require("./DreameMopMappingPassCapability"),
     DreameMopTwistControlCapabilityV1: require("./DreameMopTwistControlCapabilityV1"),
     DreameMopTwistControlCapabilityV2: require("./DreameMopTwistControlCapabilityV2"),
+    DreameMultiFloorMapCapability: require("./DreameMultiFloorMapCapability"),
     DreameObstacleImagesCapability: require("./DreameObstacleImagesCapability"),
     DreameOperationModeControlCapability: require("./DreameOperationModeControlCapability"),
     DreamePendingMapChangeHandlingCapability: require("./DreamePendingMapChangeHandlingCapability"),

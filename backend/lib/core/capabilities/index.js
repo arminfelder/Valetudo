@@ -36,6 +36,7 @@ module.exports = {
     MopExtensionControlCapability: require("./MopExtensionControlCapability"),
     MopExtensionFurnitureLegHandlingControlCapability: require("./MopExtensionFurnitureLegHandlingControlCapability"),
     MopTwistControlCapability: require("./MopTwistControlCapability"),
+    MultiFloorMapCapability: require("./MultiFloorMapCapability"),
     ObstacleAvoidanceControlCapability: require("./ObstacleAvoidanceControlCapability"),
     ObstacleImagesCapability: require("./ObstacleImagesCapability"),
     OperationModeControlCapability: require("./OperationModeControlCapability"),

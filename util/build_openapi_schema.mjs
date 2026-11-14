@@ -54,6 +54,7 @@ const options = {
             {name: "CombinedVirtualRestrictionsCapability", description: "Combined virtual restrictions capability"},
             {name: "PendingMapChangeHandlingCapability", description: "Pending map change handling capability"},
             {name: "MappingPassCapability", description: "Mapping pass capability"},
+            {name: "MultiFloorMapCapability", description: "Multi-floor map capability"},
             {name: "KeyLockCapability", description: "Key lock capability"},
             {name: "AutoEmptyDockManualTriggerCapability", description: "Auto empty dock manual trigger capability"},
             {name: "MopDockCleanManualTriggerCapability", description: "Mop Dock clean manual trigger capability"},
