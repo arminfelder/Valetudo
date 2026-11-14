@@ -118,6 +118,14 @@ class DreameX50UltraValetudoRobot extends DreameGen4ValetudoRobot {
                 wheel: {
                     siid: DreameGen2ValetudoRobot.MIOT_SERVICES.WHEEL.SIID,
                     piid: DreameGen2ValetudoRobot.MIOT_SERVICES.WHEEL.PROPERTIES.TIME_LEFT.PIID
+                },
+                mop: {
+                    siid: DreameGen2ValetudoRobot.MIOT_SERVICES.MOP.SIID,
+                    piid: DreameGen2ValetudoRobot.MIOT_SERVICES.MOP.PROPERTIES.TIME_LEFT.PIID
+                },
+                detergent: {
+                    siid: DreameGen2ValetudoRobot.MIOT_SERVICES.DETERGENT.SIID,
+                    piid: DreameGen2ValetudoRobot.MIOT_SERVICES.DETERGENT.PROPERTIES.PERCENT_LEFT.PIID
                 }
             },
             miot_actions: {
@@ -140,6 +148,14 @@ class DreameX50UltraValetudoRobot extends DreameGen4ValetudoRobot {
                 reset_wheel: {
                     siid: DreameGen2ValetudoRobot.MIOT_SERVICES.WHEEL.SIID,
                     aiid: DreameGen2ValetudoRobot.MIOT_SERVICES.WHEEL.ACTIONS.RESET.AIID
+                },
+                reset_mop: {
+                    siid: DreameGen2ValetudoRobot.MIOT_SERVICES.MOP.SIID,
+                    aiid: DreameGen2ValetudoRobot.MIOT_SERVICES.MOP.ACTIONS.RESET.AIID
+                },
+                reset_detergent: {
+                    siid: DreameGen2ValetudoRobot.MIOT_SERVICES.DETERGENT.SIID,
+                    aiid: DreameGen2ValetudoRobot.MIOT_SERVICES.DETERGENT.ACTIONS.RESET.AIID
                 }
             },
         }));
