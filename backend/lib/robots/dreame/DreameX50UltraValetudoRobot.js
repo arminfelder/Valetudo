@@ -255,6 +255,7 @@ class DreameX50UltraValetudoRobot extends DreameGen4ValetudoRobot {
             capabilities.DreameFloorMaterialDirectionAwareNavigationControlCapability,
             capabilities.DreameCleanRouteControlCapabilityV2,
             capabilities.DreameMopDockMopDryingTimeControlCapability,
+            capabilities.DreameDoNotDisturbScheduleCapability,
         ].forEach(capability => {
             this.registerCapability(new capability({robot: this}));
         });

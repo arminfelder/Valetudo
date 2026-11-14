@@ -21,6 +21,8 @@ import {
     ConsumableProperties,
     ConsumableState,
     DoNotDisturbConfiguration,
+    DoNotDisturbSchedule,
+    DoNotDisturbScheduleProperties,
     HighResolutionManualControlInteraction,
     HTTPBasicAuthConfiguration,
     LogLevelResponse,
@@ -876,6 +878,32 @@ export const sendDoNotDisturbConfiguration = async (configuration: DoNotDisturbC
         .then(({ status }) => {
             if (status !== 200) {
                 throw new Error("Could not update DND configuration");
+            }
+        });
+};
+
+export const fetchDoNotDisturbSchedule = async (): Promise<DoNotDisturbSchedule> => {
+    return valetudoAPI
+        .get<DoNotDisturbSchedule>(`/robot/capabilities/${Capability.DoNotDisturbSchedule}`)
+        .then(({ data }) => {
+            return data;
+        });
+};
+
+export const fetchDoNotDisturbScheduleProperties = async (): Promise<DoNotDisturbScheduleProperties> => {
+    return valetudoAPI
+        .get<DoNotDisturbScheduleProperties>(`/robot/capabilities/${Capability.DoNotDisturbSchedule}/properties`)
+        .then(({ data }) => {
+            return data;
+        });
+};
+
+export const sendDoNotDisturbSchedule = async (schedule: DoNotDisturbSchedule): Promise<void> => {
+    await valetudoAPI
+        .put(`/robot/capabilities/${Capability.DoNotDisturbSchedule}`, schedule)
+        .then(({ status }) => {
+            if (status !== 200) {
+                throw new Error("Could not update DND schedule");
             }
         });
 };

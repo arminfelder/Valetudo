@@ -12,6 +12,7 @@ module.exports = {
     ConsumableMonitoringCapability: require("./ConsumableMonitoringCapability"),
     CurrentStatisticsCapability: require("./CurrentStatisticsCapability"),
     DoNotDisturbCapability: require("./DoNotDisturbCapability"),
+    DoNotDisturbScheduleCapability: require("./DoNotDisturbScheduleCapability"),
     DuststreamingCapability: require("./DuststreamingCapability"),
     FanSpeedControlCapability: require("./FanSpeedControlCapability"),
     FloorMaterialDirectionAwareNavigationControlCapability: require("./FloorMaterialDirectionAwareNavigationControlCapability"),

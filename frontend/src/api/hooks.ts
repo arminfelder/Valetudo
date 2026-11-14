@@ -20,6 +20,8 @@ import {
     fetchCurrentStatistics,
     fetchCurrentStatisticsProperties,
     fetchDoNotDisturbConfiguration,
+    fetchDoNotDisturbSchedule,
+    fetchDoNotDisturbScheduleProperties,
     fetchHTTPBasicAuthConfiguration,
     fetchKeyLockState,
     fetchManualControlProperties,
@@ -59,6 +61,7 @@ import {
     sendCombinedVirtualRestrictionsUpdate,
     sendConsumableReset,
     sendDoNotDisturbConfiguration,
+    sendDoNotDisturbSchedule,
     sendGoToCommand,
     sendHTTPBasicAuthConfiguration,
     sendJoinSegmentsCommand,
@@ -172,6 +175,7 @@ import {
     CombinedVirtualRestrictionsUpdateRequestParameters,
     ConsumableId,
     DoNotDisturbConfiguration,
+    DoNotDisturbSchedule,
     HighResolutionManualControlInteraction,
     HTTPBasicAuthConfiguration,
     ManualControlInteraction,
@@ -238,6 +242,8 @@ enum QueryKey {
     AutoEmptyDockAutoEmptyInterval = "auto_empty_dock_auto_empty_interval",
     AutoEmptyDockAutoEmptyIntervalProperties = "auto_empty_dock_auto_empty_interval_properties",
     DoNotDisturb = "do_not_disturb",
+    DoNotDisturbSchedule = "do_not_disturb_schedule",
+    DoNotDisturbScheduleProperties = "do_not_disturb_schedule_properties",
     WifiStatus = "wifi_status",
     WifiConfigurationProperties = "wifi_configuration_properties",
     WifiScan = "wifi_scan",
@@ -1229,6 +1235,34 @@ export const useDoNotDisturbConfigurationMutation = () => {
             return sendDoNotDisturbConfiguration(configuration).then(fetchDoNotDisturbConfiguration);
         },
         onError: useOnCommandError(Capability.DoNotDisturb)
+    });
+};
+
+export const useDoNotDisturbScheduleQuery = () => {
+    return useQuery( {
+        queryKey: [QueryKey.DoNotDisturbSchedule],
+        queryFn: fetchDoNotDisturbSchedule,
+
+        staleTime: Infinity
+    });
+};
+
+export const useDoNotDisturbSchedulePropertiesQuery = () => {
+    return useQuery( {
+        queryKey: [QueryKey.DoNotDisturbScheduleProperties],
+        queryFn: fetchDoNotDisturbScheduleProperties,
+
+        staleTime: Infinity
+    });
+};
+
+export const useDoNotDisturbScheduleMutation = () => {
+    return useValetudoFetchingMutation({
+        queryKey: [QueryKey.DoNotDisturbSchedule],
+        mutationFn: (schedule: DoNotDisturbSchedule) => {
+            return sendDoNotDisturbSchedule(schedule).then(fetchDoNotDisturbSchedule);
+        },
+        onError: useOnCommandError(Capability.DoNotDisturbSchedule)
     });
 };
 

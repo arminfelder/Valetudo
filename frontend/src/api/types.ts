@@ -14,6 +14,7 @@ export enum Capability {
     ConsumableMonitoring = "ConsumableMonitoringCapability",
     CurrentStatistics = "CurrentStatisticsCapability",
     DoNotDisturb = "DoNotDisturbCapability",
+    DoNotDisturbSchedule = "DoNotDisturbScheduleCapability",
     FanSpeedControl = "FanSpeedControlCapability",
     FloorMaterialDirectionAwareNavigationControl = "FloorMaterialDirectionAwareNavigationControlCapability",
     GoToLocation = "GoToLocationCapability",
@@ -461,6 +462,23 @@ export interface DoNotDisturbConfiguration {
     enabled: boolean;
     start: DoNotDisturbTime;
     end: DoNotDisturbTime;
+}
+
+export interface DoNotDisturbWindow {
+    id?: number;
+    enabled: boolean;
+    start: DoNotDisturbTime;
+    end: DoNotDisturbTime;
+    /** Days of the week in UTC, 0 = Sunday. Empty means once. */
+    dow: Array<number>;
+}
+
+export interface DoNotDisturbSchedule {
+    windows: Array<DoNotDisturbWindow>;
+}
+
+export interface DoNotDisturbScheduleProperties {
+    maxWindows: number;
 }
 
 export interface WifiConfiguration {
