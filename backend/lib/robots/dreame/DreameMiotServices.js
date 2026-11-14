@@ -525,6 +525,9 @@ module.exports = {
                 },
                 PERCENT_LEFT: {
                     PIID: 1
+                },
+                INSTALL_STATE: { //0 = not installed. Without it, the firmware does not count the consumable.
+                    PIID: 3
                 }
             },
             ACTIONS: {
@@ -541,6 +544,9 @@ module.exports = {
                 },
                 PERCENT_LEFT: {
                     PIID: 2
+                },
+                INSTALL_STATE: { //0 = not installed. Without it, the firmware does not count the consumable.
+                    PIID: 3
                 }
             },
             ACTIONS: {
@@ -557,6 +563,9 @@ module.exports = {
                 },
                 PERCENT_LEFT: {
                     PIID: 1
+                },
+                INSTALL_STATE: { //0 = not installed. Without it, the firmware does not count the consumable.
+                    PIID: 3
                 }
             },
             ACTIONS: {
@@ -768,6 +777,9 @@ module.exports = {
                 },
                 PERCENT_LEFT: {
                     PIID: 2
+                },
+                INSTALL_STATE: { //0 = not installed. Without it, the firmware does not count the consumable.
+                    PIID: 3
                 }
             },
             ACTIONS: {
@@ -784,6 +796,9 @@ module.exports = {
                 },
                 PERCENT_LEFT: {
                     PIID: 2
+                },
+                INSTALL_STATE: { //0 = not installed. Without it, the firmware does not count the consumable.
+                    PIID: 3
                 }
             },
             ACTIONS: {

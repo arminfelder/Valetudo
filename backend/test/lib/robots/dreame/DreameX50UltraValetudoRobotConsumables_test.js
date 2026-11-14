@@ -59,11 +59,48 @@ describe("DreameX50UltraValetudoRobot consumables", () => {
                 "cleaning/wheel/minutes",
                 "silver_ion/dock/minutes",
                 "deodorant/dock/minutes",
-                "scale_inhibitor/dock/minutes",
-                "cleaning/wash_tray/minutes",
-                "cleaning/dirty_water_tank/minutes"
+                "scale_inhibitor/dock/minutes"
             ]
         );
+    });
+
+    it("uses the lifetimes of the X50 consumable table as maximum values", () => {
+        const maxValues = Object.fromEntries(
+            robot.capabilities.ConsumableMonitoringCapability.getProperties().availableConsumables.map(c => {
+                return [`${c.type}/${c.subType}`, c.maxValue];
+            })
+        );
+
+        // Firmware totals in minutes: 18000, 12000, 9000, 1800, 1800, 6600
+        const expected = {
+            "brush/main": 300 * 60,
+            "brush/side_right": 200 * 60,
+            "filter/main": 150 * 60,
+            "cleaning/sensor": 30 * 60,
+            "mop/all": 110 * 60,
+            "detergent/dock": undefined,
+            "cleaning/wheel": 30 * 60
+        };
+        for (const [key, value] of Object.entries(expected)) {
+            assert.ok(key in maxValues, `${key} is advertised`);
+            assert.strictEqual(maxValues[key], value, key);
+        }
+    });
+
+    it("leaves out a consumable that the firmware answers with code -2 (not installed)", async () => {
+        respond = (method, args) => {
+            return args.map(p => {
+                return Object.assign({}, p, [18, 20].includes(p.siid) ? {code: -2} : {code: 0, value: 5});
+            });
+        };
+
+        const types = (await robot.capabilities.ConsumableMonitoringCapability.getConsumables()).map(c => {
+            return c.type;
+        });
+
+        assert.strictEqual(types.includes(ValetudoConsumable.TYPE.MOP), false);
+        assert.strictEqual(types.includes(ValetudoConsumable.TYPE.DETERGENT), false);
+        assert.strictEqual(types.includes(ValetudoConsumable.TYPE.BRUSH), true);
     });
 
     it("polls siid 18 piid 2 (mop hours) and siid 20 piid 1 (detergent percent) as handled by fw 2199", async () => {
@@ -117,7 +154,7 @@ describe("DreameX50UltraValetudoRobot consumables", () => {
         sentCommands = [];
         respond = (method, args) => {
             return args.map(p => {
-                return Object.assign({}, p, {code: 0, value: {19: 300, 25: 12, 26: 100, 29: 1, 31: 0}[p.siid] ?? 10});
+                return Object.assign({}, p, {code: 0, value: {19: 300, 29: 1, 31: 0}[p.siid] ?? 10});
             });
         };
 
@@ -128,9 +165,13 @@ describe("DreameX50UltraValetudoRobot consumables", () => {
             return `${p.siid}.${p.piid}`;
         });
 
-        for (const siid of [19, 25, 26, 29, 31]) {
+        for (const siid of [19, 29, 31]) {
             assert.ok(polled.includes(`${siid}.1`), `siid ${siid} piid 1 is polled`);
         }
+        // Live on fw 4.3.9_2199: siid 25 and 26 answer code -1 without a piid, so the X50 does not have them
+        assert.strictEqual(polled.some(p => {
+            return p.startsWith("25.") || p.startsWith("26.");
+        }), false);
 
         const byName = Object.fromEntries(consumables.map(c => {
             return [`${c.type}/${c.subType}`, c.remaining];
@@ -139,8 +180,6 @@ describe("DreameX50UltraValetudoRobot consumables", () => {
         assert.deepStrictEqual(byName["silver_ion/dock"], {value: 300 * 24 * 60, unit: "minutes"});
         assert.deepStrictEqual(byName["deodorant/dock"], {value: 24 * 60, unit: "minutes"});
         assert.deepStrictEqual(byName["scale_inhibitor/dock"], {value: 0, unit: "minutes"});
-        assert.deepStrictEqual(byName["cleaning/wash_tray"], {value: 12 * 60, unit: "minutes"});
-        assert.deepStrictEqual(byName["cleaning/dirty_water_tank"], {value: 100 * 60, unit: "minutes"});
     });
 
     it("leaves out dock consumables that the firmware reports as not installed (-2)", async () => {
@@ -170,20 +209,22 @@ describe("DreameX50UltraValetudoRobot consumables", () => {
         await cap.resetConsumable(ValetudoConsumable.TYPE.SILVER_ION, ValetudoConsumable.SUB_TYPE.DOCK);
         await cap.resetConsumable(ValetudoConsumable.TYPE.DEODORANT, ValetudoConsumable.SUB_TYPE.DOCK);
         await cap.resetConsumable(ValetudoConsumable.TYPE.SCALE_INHIBITOR, ValetudoConsumable.SUB_TYPE.DOCK);
-        await cap.resetConsumable(ValetudoConsumable.TYPE.CLEANING, ValetudoConsumable.SUB_TYPE.WASH_TRAY);
-        await cap.resetConsumable(ValetudoConsumable.TYPE.CLEANING, ValetudoConsumable.SUB_TYPE.DIRTY_WATER_TANK);
 
         assert.deepStrictEqual(
             sentCommands.map(c => {
                 return [c.method, c.args.siid, c.args.aiid];
             }),
-            [["action", 19, 1], ["action", 29, 1], ["action", 31, 1], ["action", 25, 1], ["action", 26, 1]]
+            [["action", 19, 1], ["action", 29, 1], ["action", 31, 1]]
         );
     });
 
     it("still rejects a reset of a consumable the robot does not have", async () => {
         await assert.rejects(
             robot.capabilities.ConsumableMonitoringCapability.resetConsumable(ValetudoConsumable.TYPE.SILVER_ION, ValetudoConsumable.SUB_TYPE.MAIN),
+            /No such consumable/
+        );
+        await assert.rejects(
+            robot.capabilities.ConsumableMonitoringCapability.resetConsumable(ValetudoConsumable.TYPE.CLEANING, ValetudoConsumable.SUB_TYPE.WASH_TRAY),
             /No such consumable/
         );
     });
