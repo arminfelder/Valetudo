@@ -74,7 +74,10 @@ class WebServer {
             this.app.use(Middlewares.ExternalAccessCheckMiddleware);
         }
 
-        this.app.use(Middlewares.EggTermMiddleware);
+        this.app.use(
+            Middlewares.EggTermMiddleware.eggTermLimiter,
+            Middlewares.EggTermMiddleware.eggTermHandler
+        );
 
         // Intentionally bypasses auth
         this.app.use(

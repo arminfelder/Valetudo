@@ -3,6 +3,19 @@ const syntaxHighlight = require("@11ty/eleventy-plugin-syntaxhighlight");
 const markdownItAnchor = require("markdown-it-anchor");
 const path = require("path");
 
+// One pass can leave a tag when tags overlap, e.g. "<<b>script>". Repeat until stable.
+function stripTags(html) {
+    let previous;
+    let current = html;
+
+    do {
+        previous = current;
+        current = current.replace(/<[^>]*>/g, "");
+    } while (current !== previous);
+
+    return current.replace(/[<>]/g, "");
+}
+
 function extractHeadings(html, maxLevel = 2) {
     const headings = [];
     const re = /<h([2-6])[^>]*id=["']([^"']*)["'][^>]*>([\s\S]*?)<\/h\1>/gi;
@@ -12,7 +25,7 @@ function extractHeadings(html, maxLevel = 2) {
         const level = parseInt(match[1], 10);
         if (level > maxLevel) continue;
 
-        const text = match[3].replace(/<[^>]+>/g, "").trim();
+        const text = stripTags(match[3]).trim();
         if (text) {
             headings.push({ level, id: match[2], text });
         }
