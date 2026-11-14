@@ -29,7 +29,10 @@ const ConsumableButtonListMenuItem: React.FunctionComponent<{
     let buttonColor : "warning" | "error" | undefined;
     let secondaryLabelElement : React.ReactElement | undefined;
 
-    if (state) {
+    if (!state) {
+        // The robot answered without a value, for example for a part that it treats as not installed
+        secondaryLabel = "No value from the robot. The part may be marked as not installed.";
+    } else {
         secondaryLabel = "Remaining: ";
         secondaryLabel += state.remaining.unit === "minutes" ? convertSecondsToHumans(60 * state.remaining.value, false) : `${state.remaining.value} %`;
 

@@ -10,6 +10,7 @@ class DreameConsumableMonitoringCapability extends ConsumableMonitoringCapabilit
      *
      * @param {object} options
      * @param {import("../DreameValetudoRobot")} options.robot
+     * @param {number} [options.mopMaxValue] Mop lifetime in minutes, if it differs from the default
      *
      * @param {object} options.miot_actions
      * @param {object} options.miot_actions.reset_main_brush
@@ -100,6 +101,7 @@ class DreameConsumableMonitoringCapability extends ConsumableMonitoringCapabilit
      */
     constructor(options) {
         super(options);
+        this.mopMaxValue = options.mopMaxValue ?? 80 * 60;
 
         this.miot_actions = options.miot_actions;
         this.miot_properties = options.miot_properties;
@@ -473,7 +475,7 @@ class DreameConsumableMonitoringCapability extends ConsumableMonitoringCapabilit
                     type: ValetudoConsumable.TYPE.MOP,
                     subType: ValetudoConsumable.SUB_TYPE.ALL,
                     unit: ValetudoConsumable.UNITS.MINUTES,
-                    maxValue: 80 * 60
+                    maxValue: this.mopMaxValue
                 }
             );
         }

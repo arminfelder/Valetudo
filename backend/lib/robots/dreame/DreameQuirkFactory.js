@@ -539,6 +539,46 @@ class DreameQuirkFactory {
                         );
                     }
                 });
+            case DreameQuirkFactory.KNOWN_QUIRKS.MOP_PAD_TRACKING:
+                return this.buildInstallStateQuirk(
+                    id,
+                    "Mop pad wear tracking",
+                    "Some robots cannot detect their mop pads. Turn this on when mop pads are attached, so that the robot counts their remaining life.",
+                    DreameMiotServices["GEN2"].MOP.SIID,
+                    DreameMiotServices["GEN2"].MOP.PROPERTIES.INSTALL_STATE.PIID
+                );
+            case DreameQuirkFactory.KNOWN_QUIRKS.SILVER_ION_TRACKING:
+                return this.buildInstallStateQuirk(
+                    id,
+                    "Dock silver ion tracking",
+                    "Turn this on when a silver ion module is in the dock, so that the robot counts its remaining days.",
+                    DreameMiotServices["GEN2"].SILVER_ION.SIID,
+                    DreameMiotServices["GEN2"].SILVER_ION.PROPERTIES.INSTALL_STATE.PIID
+                );
+            case DreameQuirkFactory.KNOWN_QUIRKS.DEODORANT_TRACKING:
+                return this.buildInstallStateQuirk(
+                    id,
+                    "Dock deodorant tracking",
+                    "Turn this on when a deodorant is in the dock, so that the robot counts its remaining days.",
+                    DreameMiotServices["GEN2"].DEODORANT.SIID,
+                    DreameMiotServices["GEN2"].DEODORANT.PROPERTIES.INSTALL_STATE.PIID
+                );
+            case DreameQuirkFactory.KNOWN_QUIRKS.SCALE_INHIBITOR_TRACKING:
+                return this.buildInstallStateQuirk(
+                    id,
+                    "Dock scale inhibitor tracking",
+                    "Turn this on when a scale inhibitor is in the dock, so that the robot counts its remaining days.",
+                    DreameMiotServices["GEN2"].SCALE_INHIBITOR.SIID,
+                    DreameMiotServices["GEN2"].SCALE_INHIBITOR.PROPERTIES.INSTALL_STATE.PIID
+                );
+            case DreameQuirkFactory.KNOWN_QUIRKS.DETERGENT_TRACKING:
+                return this.buildInstallStateQuirk(
+                    id,
+                    "Dock detergent tracking",
+                    "Turn this on when a detergent cartridge is in the dock, so that the robot counts how much detergent is left.",
+                    DreameMiotServices["GEN2"].DETERGENT.SIID,
+                    DreameMiotServices["GEN2"].DETERGENT.PROPERTIES.INSTALL_STATE.PIID
+                );
             case DreameQuirkFactory.KNOWN_QUIRKS.CARPET_DETECTION_AUTO_DEEP_CLEANING:
                 return new Quirk({
                     id: id,
@@ -1181,6 +1221,55 @@ class DreameQuirkFactory {
                 throw new Error(`There's no quirk with id ${id}`);
         }
     }
+
+    /**
+     * The install state of a consumable (piid 3). With 0, the firmware does not count the consumable
+     * and answers its remaining-life properties with code -2.
+     *
+     * @private
+     * @param {string} id
+     * @param {string} title
+     * @param {string} description
+     * @param {number} siid
+     * @param {number} piid
+     * @returns {Quirk}
+     */
+    buildInstallStateQuirk(id, title, description, siid, piid) {
+        return new Quirk({
+            id: id,
+            title: title,
+            description: description,
+            options: ["on", "off"],
+            getter: async () => {
+                const res = await this.robot.miotHelper.readProperty(siid, piid);
+
+                switch (res) {
+                    case 1:
+                        return "on";
+                    case 0:
+                        return "off";
+                    default:
+                        throw new Error(`Received invalid value ${res}`);
+                }
+            },
+            setter: async (value) => {
+                let val;
+
+                switch (value) {
+                    case "on":
+                        val = 1;
+                        break;
+                    case "off":
+                        val = 0;
+                        break;
+                    default:
+                        throw new Error(`Received invalid value ${value}`);
+                }
+
+                return this.robot.miotHelper.writeProperty(siid, piid, val);
+            }
+        });
+    }
 }
 
 DreameQuirkFactory.KNOWN_QUIRKS = {
@@ -1205,6 +1294,11 @@ DreameQuirkFactory.KNOWN_QUIRKS = {
     CHARGING_LIMIT: "afa79ff9-2078-4d39-b960-c61c2baa42b1",
     DUSTBAG_AUTO_DRYING: "78d15359-c431-4602-99ed-17fd74a6d91d",
     DUSTBAG_DRYING: "9e194ec7-bc25-4187-8163-b796f213c3c3",
+    MOP_PAD_TRACKING: "911b3ccf-fdfb-4c02-acd3-ca817b9cfc15",
+    DETERGENT_TRACKING: "18240c06-6670-4dd0-865e-57bbf71da157",
+    SILVER_ION_TRACKING: "664a2695-31d5-4186-b55c-b1c0984a64ff",
+    DEODORANT_TRACKING: "b7dccf8e-ee31-4348-a863-6cb114ce536a",
+    SCALE_INHIBITOR_TRACKING: "ae628123-ba9f-42ad-8aa4-a0ca5cb1fafb",
     HURDLE_CROSSING_MODE: "a8fcf6a3-80ed-4149-89ef-d81936b8e080",
     OBSTACLE_RETRY_CLEAN_LATER: "15f0a896-c563-4560-b897-a586bd33a312",
     FAN_SPEED_ONE_TIME_TURBO: "017c40b7-dc24-48e8-a6e0-19d66528fa6d",

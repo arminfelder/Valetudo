@@ -98,6 +98,7 @@ class DreameX50UltraValetudoRobot extends DreameGen4ValetudoRobot {
 
         this.registerCapability(new capabilities.DreameConsumableMonitoringCapability({
             robot: this,
+            mopMaxValue: 110 * 60, // 6600 min in the consumable table of fw 4.3.9_2199
             miot_properties: {
                 main_brush: {
                     siid: DreameGen2ValetudoRobot.MIOT_SERVICES.MAIN_BRUSH.SIID,
@@ -138,14 +139,6 @@ class DreameX50UltraValetudoRobot extends DreameGen4ValetudoRobot {
                 scale_inhibitor: {
                     siid: DreameGen2ValetudoRobot.MIOT_SERVICES.SCALE_INHIBITOR.SIID,
                     piid: DreameGen2ValetudoRobot.MIOT_SERVICES.SCALE_INHIBITOR.PROPERTIES.DAYS_LEFT.PIID
-                },
-                wash_tray: {
-                    siid: DreameGen2ValetudoRobot.MIOT_SERVICES.DOCK_WASH_TRAY.SIID,
-                    piid: DreameGen2ValetudoRobot.MIOT_SERVICES.DOCK_WASH_TRAY.PROPERTIES.TIME_LEFT.PIID
-                },
-                dirty_water_tank: {
-                    siid: DreameGen2ValetudoRobot.MIOT_SERVICES.DOCK_DIRTY_WATER_TANK.SIID,
-                    piid: DreameGen2ValetudoRobot.MIOT_SERVICES.DOCK_DIRTY_WATER_TANK.PROPERTIES.TIME_LEFT.PIID
                 }
             },
             miot_actions: {
@@ -188,14 +181,6 @@ class DreameX50UltraValetudoRobot extends DreameGen4ValetudoRobot {
                 reset_scale_inhibitor: {
                     siid: DreameGen2ValetudoRobot.MIOT_SERVICES.SCALE_INHIBITOR.SIID,
                     aiid: DreameGen2ValetudoRobot.MIOT_SERVICES.SCALE_INHIBITOR.ACTIONS.RESET.AIID
-                },
-                reset_wash_tray: {
-                    siid: DreameGen2ValetudoRobot.MIOT_SERVICES.DOCK_WASH_TRAY.SIID,
-                    aiid: DreameGen2ValetudoRobot.MIOT_SERVICES.DOCK_WASH_TRAY.ACTIONS.RESET.AIID
-                },
-                reset_dirty_water_tank: {
-                    siid: DreameGen2ValetudoRobot.MIOT_SERVICES.DOCK_DIRTY_WATER_TANK.SIID,
-                    aiid: DreameGen2ValetudoRobot.MIOT_SERVICES.DOCK_DIRTY_WATER_TANK.ACTIONS.RESET.AIID
                 }
             },
         }));
@@ -306,6 +291,11 @@ class DreameX50UltraValetudoRobot extends DreameGen4ValetudoRobot {
                 quirkFactory.getQuirk(DreameQuirkFactory.KNOWN_QUIRKS.CARPET_MODE_SENSITIVITY),
                 quirkFactory.getQuirk(DreameQuirkFactory.KNOWN_QUIRKS.MOP_DOCK_MOP_CLEANING_FREQUENCY),
                 quirkFactory.getQuirk(DreameQuirkFactory.KNOWN_QUIRKS.MOP_DOCK_DETERGENT),
+                quirkFactory.getQuirk(DreameQuirkFactory.KNOWN_QUIRKS.MOP_PAD_TRACKING),
+                quirkFactory.getQuirk(DreameQuirkFactory.KNOWN_QUIRKS.DETERGENT_TRACKING),
+                quirkFactory.getQuirk(DreameQuirkFactory.KNOWN_QUIRKS.SILVER_ION_TRACKING),
+                quirkFactory.getQuirk(DreameQuirkFactory.KNOWN_QUIRKS.DEODORANT_TRACKING),
+                quirkFactory.getQuirk(DreameQuirkFactory.KNOWN_QUIRKS.SCALE_INHIBITOR_TRACKING),
                 quirkFactory.getQuirk(DreameQuirkFactory.KNOWN_QUIRKS.MOP_DOCK_WET_DRY_SWITCH),
                 quirkFactory.getQuirk(DreameQuirkFactory.KNOWN_QUIRKS.MOP_DOCK_AUTO_REPAIR_TRIGGER),
                 quirkFactory.getQuirk(DreameQuirkFactory.KNOWN_QUIRKS.DRAIN_INTERNAL_WATER_TANK),
