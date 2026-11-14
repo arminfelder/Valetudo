@@ -2,7 +2,7 @@ const Logger = require("../../Logger");
 const mapEntities = require("../../entities/map");
 const MideaConst = require("./MideaConst");
 const Protobufs = require("./generated/midea_protobufs.js");
-const uuid = require("uuid");
+const uuidV5 = require("../../utils/UuidV5");
 const zlib = require("zlib");
 
 class MideaMapParser {
@@ -669,7 +669,7 @@ class MideaMapParser {
                     type: mapEntities.PointMapEntity.TYPE.OBSTACLE,
                     metaData: {
                         label: `${obstacleType} (${confidence})`,
-                        id: uuid.v5(objectHash, OBSTACLE_ID_NAMESPACE),
+                        id: uuidV5(objectHash, OBSTACLE_ID_NAMESPACE),
                         image: image
                     }
                 }));

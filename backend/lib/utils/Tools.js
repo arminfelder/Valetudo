@@ -1,7 +1,7 @@
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
-const uuid = require("uuid");
+const uuidV5 = require("./UuidV5");
 const zooIDs = require("zoo-ids");
 
 const env = require("../res/env");
@@ -147,7 +147,7 @@ class Tools {
             macAddresses = Tools.GET_NETWORK_INTERFACE_MACS_FROM_NODEJS();
         }
 
-        SYSTEM_ID = uuid.v5(
+        SYSTEM_ID = uuidV5(
             macAddresses.join(""),
             VALETUDO_NAMESPACE
         );

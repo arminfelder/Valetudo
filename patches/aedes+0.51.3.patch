@@ -1,0 +1,12 @@
+diff --git a/node_modules/aedes/aedes.js b/node_modules/aedes/aedes.js
+--- a/node_modules/aedes/aedes.js
++++ b/node_modules/aedes/aedes.js
+@@ -4,7 +4,7 @@ const EventEmitter = require('events')
+ const util = require('util')
+ const parallel = require('fastparallel')
+ const series = require('fastseries')
+-const { v4: uuidv4 } = require('uuid')
++const { randomUUID: uuidv4 } = require('crypto')
+ const reusify = require('reusify')
+ const { pipeline } = require('stream')
+ const Packet = require('aedes-packet')
