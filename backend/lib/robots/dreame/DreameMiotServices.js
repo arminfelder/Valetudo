@@ -300,6 +300,9 @@ module.exports = {
                 ERROR_CODE: {
                     PIID: 18
                 },
+                WARNING_CODE: { //Dock warnings like a full dust bag. The X50 reports them here and not in ERROR_CODE.
+                    PIID: 35
+                },
                 LOCATING_STATUS: {
                     PIID: 20
                     /*

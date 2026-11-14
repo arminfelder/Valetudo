@@ -57,6 +57,7 @@ class DreameGen2ValetudoRobot extends DreameValetudoRobot {
             taskStatus: 0, // None
             isCharging: false,
             errorCode: "0",
+            warningCode: "0",
             mopDockState: undefined, // Might not be set depending on model
             autoEmptyDockState: undefined // Might also not be set depending on model
         };
@@ -486,6 +487,12 @@ class DreameGen2ValetudoRobot extends DreameValetudoRobot {
                             statusNeedsUpdate = true;
                             break;
                         }
+                        case MIOT_SERVICES.VACUUM_2.PROPERTIES.WARNING_CODE.PIID: {
+                            this.ephemeralState.warningCode = `${elem.value ?? "0"}`;
+
+                            statusNeedsUpdate = true;
+                            break;
+                        }
                         case MIOT_SERVICES.VACUUM_2.PROPERTIES.TASK_STATUS.PIID: {
                             this.ephemeralState.taskStatus = elem.value;
 
@@ -837,8 +844,17 @@ class DreameGen2ValetudoRobot extends DreameValetudoRobot {
                 this.ephemeralState.errorCode = errorArray[0] ?? "";
             }
 
+            // A warning only counts while there is no error
+            let errorCode = this.ephemeralState.errorCode;
+            if (
+                (errorCode === "0" || errorCode === "") &&
+                this.ephemeralState.warningCode !== "0" && this.ephemeralState.warningCode !== ""
+            ) {
+                errorCode = this.ephemeralState.warningCode;
+            }
 
-            if (this.ephemeralState.errorCode === "0" || this.ephemeralState.errorCode === "") {
+
+            if (errorCode === "0" || errorCode === "") {
                 statusValue = DreameValetudoRobot.STATUS_MAP[this.ephemeralState.mode]?.value ?? stateAttrs.StatusStateAttribute.VALUE.IDLE;
                 statusFlag = DreameValetudoRobot.STATUS_MAP[this.ephemeralState.mode]?.flag;
 
@@ -862,20 +878,20 @@ class DreameGen2ValetudoRobot extends DreameValetudoRobot {
                     statusFlag = stateAttrs.StatusStateAttribute.FLAG.RESUMABLE;
                 }
             } else {
-                if (this.ephemeralState.errorCode === "68") { // Docked with mop still attached. For some reason, dreame decided to have this as an error
+                if (errorCode === "68") { // Docked with mop still attached. For some reason, dreame decided to have this as an error
                     statusValue = stateAttrs.StatusStateAttribute.VALUE.DOCKED;
 
                     if (!this.hasCapability(capabilities.DreameMopDockDryManualTriggerCapability.TYPE)) {
                         this.valetudoEventStore.raise(new MopAttachmentReminderValetudoEvent({}));
                     }
-                } else if (this.ephemeralState.errorCode === "114") { // Reminder message to regularly clean the mop dock
+                } else if (errorCode === "114") { // Reminder message to regularly clean the mop dock
                     statusValue = stateAttrs.StatusStateAttribute.VALUE.DOCKED;
-                } else if (this.ephemeralState.errorCode === "122") { // Apparently just an info that the water hookup (kit) worked successfully?
+                } else if (errorCode === "122") { // Apparently just an info that the water hookup (kit) worked successfully?
                     statusValue = stateAttrs.StatusStateAttribute.VALUE.DOCKED;
                 } else {
                     statusValue = stateAttrs.StatusStateAttribute.VALUE.ERROR;
 
-                    statusError = DreameValetudoRobot.MAP_ERROR_CODE(this.ephemeralState.errorCode);
+                    statusError = DreameValetudoRobot.MAP_ERROR_CODE(errorCode);
                 }
 
             }
