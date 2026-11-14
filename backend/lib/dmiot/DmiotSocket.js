@@ -38,12 +38,14 @@ class DmiotSocket {
          */
         this.pendingRequests = Object.create(null);
         this.connected = false;
-        /** @type {net.Socket | null} */
-        this.connection = null;
+        /** @type {Set<net.Socket>} */
+        this.connections = new Set();
 
         this.server = net.createServer(connection => {
             return this.handleConnection(connection);
         });
+        // The dmiot daemon also accepts up to 9 clients (e.g. ava and dmiot_cli) and sends all messages to all of them.
+        this.server.maxConnections = MAX_CLIENTS;
 
         this.port = options.port ?? DmiotSocket.PORT;
         this.bindIP = options.bindIP;
@@ -80,16 +82,13 @@ class DmiotSocket {
      * @param {net.Socket} connection
      */
     handleConnection(connection) {
-        // The robot reconnects after errors. The newest connection always wins.
-        if (this.connection !== null) {
-            Logger.info("New dmiot client connection. Closing the previous one.");
-            this.connection.destroy();
-        }
-
         Logger.info(`dmiot client connected from ${connection.remoteAddress}:${connection.remotePort}`);
 
         const codec = new DmiotCodec();
-        this.connection = connection;
+        this.connections.add(connection);
+
+        // The robot reads with one recv() of 4096 bytes and does not buffer partial data. Nagle could merge writes beyond that.
+        connection.setNoDelay(true);
 
         connection.on("data", chunk => {
             codec.decode(chunk).forEach(msg => {
@@ -98,10 +97,11 @@ class DmiotSocket {
         });
 
         connection.on("close", () => {
-            if (this.connection === connection) {
-                Logger.info("dmiot client disconnected");
+            if (this.connections.delete(connection)) {
+                Logger.info(`dmiot client disconnected. ${this.connections.size} client(s) remaining`);
+            }
 
-                this.connection = null;
+            if (this.connections.size === 0) {
                 this.connected = false;
             }
         });
@@ -126,37 +126,39 @@ class DmiotSocket {
     handleIncomingMessage(msg) {
         Logger.debug(`<<< ${this.name}:`, msg);
 
-        if (msg["id"] && (msg["result"] !== undefined || msg["error"] !== undefined)) {
-            const pendingRequest = this.pendingRequests[msg["id"]];
+        const isResponse = msg["result"] !== undefined || msg["error"] !== undefined;
+        const pendingRequest = isResponse && msg["id"] !== undefined ? this.pendingRequests[msg["id"]] : undefined;
 
-            if (pendingRequest) {
-                clearTimeout(pendingRequest.timeout_id);
+        if (pendingRequest) {
+            clearTimeout(pendingRequest.timeout_id);
 
-                if (msg["error"] !== undefined) {
-                    if (msg["error"]?.message !== "user ack timeout") {
-                        Logger.info("dmiot error response", msg);
-                    } else {
-                        Logger.trace("dmiot error response", msg);
-                    }
-
-                    pendingRequest.reject(
-                        new MiioErrorResponseRobotFirmwareError(
-                            msg["error"]?.message,
-                            msg["error"]
-                        )
-                    );
+            if (msg["error"] !== undefined) {
+                if (msg["error"]?.message !== "user ack timeout") {
+                    Logger.info("dmiot error response", msg);
                 } else {
-                    pendingRequest.resolve(msg["result"]);
+                    Logger.trace("dmiot error response", msg);
                 }
 
-                delete this.pendingRequests[msg["id"]];
+                pendingRequest.reject(
+                    new MiioErrorResponseRobotFirmwareError(
+                        msg["error"]?.message,
+                        msg["error"]
+                    )
+                );
             } else {
-                Logger.debug(`<< ${this.name}: ignoring response for non-pending request`, msg);
+                pendingRequest.resolve(msg["result"]);
             }
-        } else if (msg["error"]) {
+
+            delete this.pendingRequests[msg["id"]];
+        } else if (typeof msg["method"] === "string") {
+            // Some robot-originated messages carry both a method and a result (e.g. call.check)
+            if (typeof this.onIncomingRequestMessage === "function") {
+                this.onIncomingRequestMessage(msg);
+            }
+        } else if (msg["error"] !== undefined) {
             Logger.warn("unhandled dmiot error response", msg);
-        } else if (typeof this.onIncomingRequestMessage === "function") {
-            this.onIncomingRequestMessage(msg);
+        } else {
+            Logger.debug(`<< ${this.name}: ignoring response for non-pending request`, msg);
         }
     }
 
@@ -197,12 +199,7 @@ class DmiotSocket {
                 };
             }
 
-            if (this.connection === null) {
-                Logger.debug(`>>> ${this.name}: not connected. Dropping`, msg);
-            } else {
-                Logger.debug(`>>> ${this.name}:`, msg);
-                this.connection.write(packet);
-            }
+            this.write(msg, packet);
 
             if (isResponse) {
                 resolve(undefined);
@@ -232,14 +229,25 @@ class DmiotSocket {
     sendNotification(msg) {
         this.assignId(msg);
 
-        if (this.connection === null) {
+        this.write(msg, DmiotCodec.encode(msg));
+    }
+
+    /**
+     * @private
+     * @param {object} msg
+     * @param {Buffer} packet
+     */
+    write(msg, packet) {
+        if (this.connections.size === 0) {
             Logger.debug(`>>> ${this.name}: not connected. Dropping`, msg);
 
             return;
         }
 
         Logger.debug(`>>> ${this.name}:`, msg);
-        this.connection.write(DmiotCodec.encode(msg));
+        this.connections.forEach(connection => {
+            connection.write(packet);
+        });
     }
 
     /**
@@ -256,7 +264,9 @@ class DmiotSocket {
             });
             this.pendingRequests = Object.create(null);
 
-            this.connection?.destroy();
+            this.connections.forEach(connection => {
+                connection.destroy();
+            });
 
             this.server.close(() => {
                 Logger.debug(this.name, "socket shutdown done");
@@ -268,6 +278,7 @@ class DmiotSocket {
 }
 
 const MAX_INT32 = 0x7fffffff;
+const MAX_CLIENTS = 9;
 const LISTEN_RETRY_INTERVAL = 5000;
 
 DmiotSocket.PORT = 64320;
