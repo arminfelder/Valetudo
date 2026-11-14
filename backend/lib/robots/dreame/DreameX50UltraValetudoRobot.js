@@ -126,6 +126,26 @@ class DreameX50UltraValetudoRobot extends DreameGen4ValetudoRobot {
                 detergent: {
                     siid: DreameGen2ValetudoRobot.MIOT_SERVICES.DETERGENT.SIID,
                     piid: DreameGen2ValetudoRobot.MIOT_SERVICES.DETERGENT.PROPERTIES.PERCENT_LEFT.PIID
+                },
+                silver_ion: {
+                    siid: DreameGen2ValetudoRobot.MIOT_SERVICES.SILVER_ION.SIID,
+                    piid: DreameGen2ValetudoRobot.MIOT_SERVICES.SILVER_ION.PROPERTIES.DAYS_LEFT.PIID
+                },
+                deodorant: {
+                    siid: DreameGen2ValetudoRobot.MIOT_SERVICES.DEODORANT.SIID,
+                    piid: DreameGen2ValetudoRobot.MIOT_SERVICES.DEODORANT.PROPERTIES.DAYS_LEFT.PIID
+                },
+                scale_inhibitor: {
+                    siid: DreameGen2ValetudoRobot.MIOT_SERVICES.SCALE_INHIBITOR.SIID,
+                    piid: DreameGen2ValetudoRobot.MIOT_SERVICES.SCALE_INHIBITOR.PROPERTIES.DAYS_LEFT.PIID
+                },
+                wash_tray: {
+                    siid: DreameGen2ValetudoRobot.MIOT_SERVICES.DOCK_WASH_TRAY.SIID,
+                    piid: DreameGen2ValetudoRobot.MIOT_SERVICES.DOCK_WASH_TRAY.PROPERTIES.TIME_LEFT.PIID
+                },
+                dirty_water_tank: {
+                    siid: DreameGen2ValetudoRobot.MIOT_SERVICES.DOCK_DIRTY_WATER_TANK.SIID,
+                    piid: DreameGen2ValetudoRobot.MIOT_SERVICES.DOCK_DIRTY_WATER_TANK.PROPERTIES.TIME_LEFT.PIID
                 }
             },
             miot_actions: {
@@ -156,6 +176,26 @@ class DreameX50UltraValetudoRobot extends DreameGen4ValetudoRobot {
                 reset_detergent: {
                     siid: DreameGen2ValetudoRobot.MIOT_SERVICES.DETERGENT.SIID,
                     aiid: DreameGen2ValetudoRobot.MIOT_SERVICES.DETERGENT.ACTIONS.RESET.AIID
+                },
+                reset_silver_ion: {
+                    siid: DreameGen2ValetudoRobot.MIOT_SERVICES.SILVER_ION.SIID,
+                    aiid: DreameGen2ValetudoRobot.MIOT_SERVICES.SILVER_ION.ACTIONS.RESET.AIID
+                },
+                reset_deodorant: {
+                    siid: DreameGen2ValetudoRobot.MIOT_SERVICES.DEODORANT.SIID,
+                    aiid: DreameGen2ValetudoRobot.MIOT_SERVICES.DEODORANT.ACTIONS.RESET.AIID
+                },
+                reset_scale_inhibitor: {
+                    siid: DreameGen2ValetudoRobot.MIOT_SERVICES.SCALE_INHIBITOR.SIID,
+                    aiid: DreameGen2ValetudoRobot.MIOT_SERVICES.SCALE_INHIBITOR.ACTIONS.RESET.AIID
+                },
+                reset_wash_tray: {
+                    siid: DreameGen2ValetudoRobot.MIOT_SERVICES.DOCK_WASH_TRAY.SIID,
+                    aiid: DreameGen2ValetudoRobot.MIOT_SERVICES.DOCK_WASH_TRAY.ACTIONS.RESET.AIID
+                },
+                reset_dirty_water_tank: {
+                    siid: DreameGen2ValetudoRobot.MIOT_SERVICES.DOCK_DIRTY_WATER_TANK.SIID,
+                    aiid: DreameGen2ValetudoRobot.MIOT_SERVICES.DOCK_DIRTY_WATER_TANK.ACTIONS.RESET.AIID
                 }
             },
         }));

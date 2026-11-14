@@ -32,6 +32,9 @@ ValetudoConsumable.TYPE = Object.freeze({
     DETERGENT: "detergent",
     BIN: "bin",
     CLEANING: "cleaning",
+    SILVER_ION: "silver_ion",
+    DEODORANT: "deodorant",
+    SCALE_INHIBITOR: "scale_inhibitor",
 });
 
 /**
@@ -48,7 +51,9 @@ ValetudoConsumable.SUB_TYPE = Object.freeze({
     SIDE_RIGHT: "side_right",
     DOCK: "dock",
     SENSOR: "sensor",
-    WHEEL: "wheel"
+    WHEEL: "wheel",
+    WASH_TRAY: "wash_tray",
+    DIRTY_WATER_TANK: "dirty_water_tank"
 });
 
 /**

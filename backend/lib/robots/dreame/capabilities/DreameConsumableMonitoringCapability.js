@@ -47,6 +47,11 @@ class DreameConsumableMonitoringCapability extends ConsumableMonitoringCapabilit
      * @param {object} [options.miot_actions.reset_roller_mop_fluffer]
      * @param {number} options.miot_actions.reset_roller_mop_fluffer.siid
      * @param {number} options.miot_actions.reset_roller_mop_fluffer.aiid
+     * @param {object} [options.miot_actions.reset_silver_ion]
+     * @param {object} [options.miot_actions.reset_deodorant]
+     * @param {object} [options.miot_actions.reset_scale_inhibitor]
+     * @param {object} [options.miot_actions.reset_wash_tray]
+     * @param {object} [options.miot_actions.reset_dirty_water_tank]
      *
      *
      * @param {object} options.miot_properties
@@ -85,6 +90,13 @@ class DreameConsumableMonitoringCapability extends ConsumableMonitoringCapabilit
      * @param {object} [options.miot_properties.roller_mop_fluffer]
      * @param {number} options.miot_properties.roller_mop_fluffer.siid
      * @param {number} options.miot_properties.roller_mop_fluffer.piid
+     *
+     * Dock consumables. Each key of DOCK_CONSUMABLES can be given in miot_properties and in miot_actions.
+     * @param {object} [options.miot_properties.silver_ion]
+     * @param {object} [options.miot_properties.deodorant]
+     * @param {object} [options.miot_properties.scale_inhibitor]
+     * @param {object} [options.miot_properties.wash_tray]
+     * @param {object} [options.miot_properties.dirty_water_tank]
      */
     constructor(options) {
         super(options);
@@ -130,6 +142,12 @@ class DreameConsumableMonitoringCapability extends ConsumableMonitoringCapabilit
         if (this.miot_properties.roller_mop_fluffer) {
             props.push(this.miot_properties.roller_mop_fluffer);
         }
+
+        Object.keys(DOCK_CONSUMABLES).forEach(key => {
+            if (this.miot_properties[key]) {
+                props.push(this.miot_properties[key]);
+            }
+        });
 
         let response;
         try {
@@ -222,6 +240,16 @@ class DreameConsumableMonitoringCapability extends ConsumableMonitoringCapabilit
                 break;
         }
 
+        if (!payload) {
+            const dockConsumableKey = Object.keys(DOCK_CONSUMABLES).find(key => {
+                return DOCK_CONSUMABLES[key].type === type && DOCK_CONSUMABLES[key].subType === subType;
+            });
+
+            if (dockConsumableKey !== undefined) {
+                payload = this.miot_actions[`reset_${dockConsumableKey}`];
+            }
+        }
+
         if (payload) {
             await this.robot.miotHelper.executeAction(payload.siid, payload.aiid);
 
@@ -234,6 +262,16 @@ class DreameConsumableMonitoringCapability extends ConsumableMonitoringCapabilit
 
     parseConsumablesMessage(msg) {
         let consumable;
+
+        const dockConsumableKey = Object.keys(DOCK_CONSUMABLES).find(key => {
+            const prop = this.miot_properties[key];
+
+            return prop && prop.siid === msg.siid && prop.piid === msg.piid;
+        });
+
+        if (dockConsumableKey !== undefined) {
+            return this.parseDockConsumable(DOCK_CONSUMABLES[dockConsumableKey], msg.value);
+        }
 
         switch (msg.siid) {
             case this.miot_properties.main_brush.siid: {
@@ -373,6 +411,28 @@ class DreameConsumableMonitoringCapability extends ConsumableMonitoringCapabilit
         return consumable;
     }
 
+    /**
+     * @private
+     * @param {DockConsumableMeta} meta
+     * @param {number} value
+     * @returns {ValetudoConsumable|undefined}
+     */
+    parseDockConsumable(meta, value) {
+        // The firmware returns -2 when the part is not installed
+        if (typeof value !== "number" || value < 0) {
+            return undefined;
+        }
+
+        return new ValetudoConsumable({
+            type: meta.type,
+            subType: meta.subType,
+            remaining: {
+                value: Math.round(value * meta.minutesPerUnit),
+                unit: ValetudoConsumable.UNITS.MINUTES
+            }
+        });
+    }
+
     getProperties() {
         /** @type Array<ConsumableMonitoringCapability.ConsumableMeta> **/
         const availableConsumables = [
@@ -461,10 +521,71 @@ class DreameConsumableMonitoringCapability extends ConsumableMonitoringCapabilit
             );
         }
 
+        Object.keys(DOCK_CONSUMABLES).forEach(key => {
+            if (this.miot_properties[key]) {
+                availableConsumables.push({
+                    type: DOCK_CONSUMABLES[key].type,
+                    subType: DOCK_CONSUMABLES[key].subType,
+                    unit: ValetudoConsumable.UNITS.MINUTES,
+                    maxValue: DOCK_CONSUMABLES[key].maxValue
+                });
+            }
+        });
+
         return {
             availableConsumables: availableConsumables
         };
     }
 }
+
+/**
+ * @typedef {object} DockConsumableMeta
+ * @property {string} type
+ * @property {string} subType
+ * @property {number} minutesPerUnit Minutes per unit of the raw value
+ * @property {number} maxValue In minutes
+ */
+
+const DAY = 24 * 60;
+const HOUR = 60;
+
+/**
+ * Units and lifetimes are from the consumable table of the Dreame X50 firmware 4.3.9_2199.
+ * Silver ion, deodorant and scale inhibitor count calendar days. The two cleaning reminders count hours of use.
+ *
+ * @type {Object<string, DockConsumableMeta>}
+ */
+const DOCK_CONSUMABLES = Object.freeze({
+    silver_ion: {
+        type: ValetudoConsumable.TYPE.SILVER_ION,
+        subType: ValetudoConsumable.SUB_TYPE.DOCK,
+        minutesPerUnit: DAY,
+        maxValue: 365 * DAY
+    },
+    deodorant: {
+        type: ValetudoConsumable.TYPE.DEODORANT,
+        subType: ValetudoConsumable.SUB_TYPE.DOCK,
+        minutesPerUnit: DAY,
+        maxValue: 180 * DAY
+    },
+    scale_inhibitor: {
+        type: ValetudoConsumable.TYPE.SCALE_INHIBITOR,
+        subType: ValetudoConsumable.SUB_TYPE.DOCK,
+        minutesPerUnit: DAY,
+        maxValue: 1095 * DAY
+    },
+    wash_tray: {
+        type: ValetudoConsumable.TYPE.CLEANING,
+        subType: ValetudoConsumable.SUB_TYPE.WASH_TRAY,
+        minutesPerUnit: HOUR,
+        maxValue: 50 * HOUR
+    },
+    dirty_water_tank: {
+        type: ValetudoConsumable.TYPE.CLEANING,
+        subType: ValetudoConsumable.SUB_TYPE.DIRTY_WATER_TANK,
+        minutesPerUnit: HOUR,
+        maxValue: 110 * HOUR
+    }
+});
 
 module.exports = DreameConsumableMonitoringCapability;

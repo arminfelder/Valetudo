@@ -199,6 +199,9 @@ const TYPE_MAPPING = Object.freeze({
     [ValetudoConsumable.TYPE.MOP]: "Mop",
     [ValetudoConsumable.TYPE.DETERGENT]: "Detergent",
     [ValetudoConsumable.TYPE.BIN]: "Bin",
+    [ValetudoConsumable.TYPE.SILVER_ION]: "Silver Ion",
+    [ValetudoConsumable.TYPE.DEODORANT]: "Deodorant",
+    [ValetudoConsumable.TYPE.SCALE_INHIBITOR]: "Scale Inhibitor",
 });
 
 const SUBTYPE_MAPPING = Object.freeze({
@@ -211,6 +214,8 @@ const SUBTYPE_MAPPING = Object.freeze({
     [ValetudoConsumable.SUB_TYPE.DOCK]: "Dock",
     [ValetudoConsumable.SUB_TYPE.SENSOR]: "Sensor",
     [ValetudoConsumable.SUB_TYPE.WHEEL]: "Wheel",
+    [ValetudoConsumable.SUB_TYPE.WASH_TRAY]: "Wash Tray",
+    [ValetudoConsumable.SUB_TYPE.DIRTY_WATER_TANK]: "Dirty Water Tank",
 });
 
 ConsumableMonitoringCapabilityMqttHandle.OPTIONAL = true;
