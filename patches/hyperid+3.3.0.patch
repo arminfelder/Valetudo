@@ -1,0 +1,12 @@
+diff --git a/node_modules/hyperid/uuid-node.js b/node_modules/hyperid/uuid-node.js
+--- a/node_modules/hyperid/uuid-node.js
++++ b/node_modules/hyperid/uuid-node.js
+@@ -1,7 +1,4 @@
+ 'use strict'
+ 
+-const uuid = require('uuid')
+ const crypto = require('crypto')
+-module.exports = typeof crypto.randomUUID === 'function'
+-  ? crypto.randomUUID
+-  : uuid.v4
++module.exports = crypto.randomUUID

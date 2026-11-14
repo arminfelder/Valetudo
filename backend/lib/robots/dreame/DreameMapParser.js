@@ -1,7 +1,7 @@
 const DreameConst = require("./DreameConst");
 const Logger = require("../../Logger");
 const mapEntities = require("../../entities/map");
-const uuid = require("uuid");
+const uuidV5 = require("../../utils/UuidV5");
 const zlib = require("zlib");
 
 /**
@@ -379,7 +379,7 @@ class DreameMapParser {
                         type: mapEntities.PointMapEntity.TYPE.OBSTACLE,
                         metaData: {
                             label: `${type} (${confidence})`,
-                            id: uuid.v5(
+                            id: uuidV5(
                                 `${obstacle[2]}_${obstacle[0]}_${obstacle[1]}`,
                                 OBSTACLE_ID_NAMESPACE
                             ),
