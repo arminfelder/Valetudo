@@ -26,6 +26,7 @@ module.exports = {
     MopDockDryManualTriggerCapabilityRouter: require("./MopDockDryManualTriggerCapabilityRouter"),
     MopDockMopDryingTimeControlCapabilityRouter: require("./MopDockMopDryingTimeControlCapabilityRouter"),
     MopDockMopWashTemperatureControlCapabilityRouter : require("./MopDockMopWashTemperatureControlCapabilityRouter"),
+    MultiFloorMapCapabilityRouter: require("./MultiFloorMapCapabilityRouter"),
     ObstacleImagesCapabilityRouter: require("./ObstacleImagesCapabilityRouter"),
     PendingMapChangeHandlingCapabilityRouter: require("./PendingMapChangeHandlingCapabilityRouter"),
     PresetSelectionCapabilityRouter: require("./PresetSelectionCapabilityRouter"),

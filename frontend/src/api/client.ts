@@ -42,6 +42,9 @@ import {
     MopDockMopWashTemperature,
     MopDockMopWashTemperaturePayload,
     MopDockMopWashTemperatureProperties,
+    MultiFloorMapAction,
+    MultiFloorMapProperties,
+    MultiFloorMapState,
     MQTTConfiguration,
     MQTTProperties,
     MQTTStatus,
@@ -754,6 +757,32 @@ export const sendStartMappingPass = async (): Promise<void> => {
         .then(({ status }) => {
             if (status !== 200) {
                 throw new Error("Could not start the mapping pass");
+            }
+        });
+};
+
+export const fetchMultiFloorMapState = async (): Promise<MultiFloorMapState> => {
+    return valetudoAPI
+        .get<MultiFloorMapState>(`/robot/capabilities/${Capability.MultiFloorMap}`)
+        .then(({ data }) => {
+            return data;
+        });
+};
+
+export const fetchMultiFloorMapProperties = async (): Promise<MultiFloorMapProperties> => {
+    return valetudoAPI
+        .get<MultiFloorMapProperties>(`/robot/capabilities/${Capability.MultiFloorMap}/properties`)
+        .then(({ data }) => {
+            return data;
+        });
+};
+
+export const sendMultiFloorMapAction = async (action: MultiFloorMapAction): Promise<void> => {
+    await valetudoAPI
+        .put(`/robot/capabilities/${Capability.MultiFloorMap}`, action)
+        .then(({ status }) => {
+            if (status !== 200) {
+                throw new Error("Could not change the stored maps");
             }
         });
 };

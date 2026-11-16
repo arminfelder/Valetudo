@@ -28,6 +28,8 @@ import {
     fetchManualControlState,
     fetchMap,
     fetchMapSegmentationProperties,
+    fetchMultiFloorMapProperties,
+    fetchMultiFloorMapState,
     fetchMQTTConfiguration,
     fetchMQTTProperties,
     fetchNTPClientConfiguration,
@@ -69,6 +71,7 @@ import {
     sendLocateCommand,
     sendManualControlInteraction,
     sendMapReset,
+    sendMultiFloorMapAction,
     sendMQTTConfiguration,
     sendNTPClientConfiguration,
     sendObstacleAvoidanceControlState,
@@ -180,6 +183,7 @@ import {
     HTTPBasicAuthConfiguration,
     ManualControlInteraction,
     MapSegmentationActionRequestParameters,
+    MultiFloorMapAction,
     MapSegmentEditJoinRequestParameters,
     MapSegmentEditSplitRequestParameters,
     MapSegmentMaterialControlRequestParameters,
@@ -248,6 +252,8 @@ enum QueryKey {
     WifiConfigurationProperties = "wifi_configuration_properties",
     WifiScan = "wifi_scan",
     ManualControl = "manual_control",
+    MultiFloorMap = "multi_floor_map",
+    MultiFloorMapProperties = "multi_floor_map_properties",
     ManualControlProperties = "manual_control_properties",
     HighResolutionManualControl = "high_resolution_manual_control",
     CombinedVirtualRestrictionsProperties = "combined_virtual_restrictions_properties",
@@ -1076,6 +1082,34 @@ export const useStartMappingPassMutation = () => {
     return useMutation({
         mutationFn: sendStartMappingPass,
         onError: useOnCommandError(Capability.MappingPass),
+    });
+};
+
+export const useMultiFloorMapQuery = () => {
+    return useQuery( {
+        queryKey: [QueryKey.MultiFloorMap],
+        queryFn: fetchMultiFloorMapState,
+
+        staleTime: Infinity
+    });
+};
+
+export const useMultiFloorMapPropertiesQuery = () => {
+    return useQuery( {
+        queryKey: [QueryKey.MultiFloorMapProperties],
+        queryFn: fetchMultiFloorMapProperties,
+
+        staleTime: Infinity
+    });
+};
+
+export const useMultiFloorMapMutation = () => {
+    return useValetudoFetchingMutation({
+        queryKey: [QueryKey.MultiFloorMap],
+        mutationFn: (action: MultiFloorMapAction) => {
+            return sendMultiFloorMapAction(action).then(fetchMultiFloorMapState);
+        },
+        onError: useOnCommandError(Capability.MultiFloorMap)
     });
 };
 

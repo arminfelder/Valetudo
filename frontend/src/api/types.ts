@@ -29,6 +29,7 @@ export enum Capability {
     MapSegmentation = "MapSegmentationCapability",
     MapSnapshot = "MapSnapshotCapability",
     MappingPass = "MappingPassCapability",
+    MultiFloorMap = "MultiFloorMapCapability",
     MopDockMopWashTemperatureControl = "MopDockMopWashTemperatureControlCapability",
     MopDockMopDryingTimeControl = "MopDockMopDryingTimeControlCapability",
     ObstacleAvoidanceControl = "ObstacleAvoidanceControlCapability",
@@ -452,6 +453,28 @@ export interface VoicePackManagementCommand {
     language: string;
     hash: string;
 }
+
+export interface FloorMap {
+    id: number;
+    name?: string;
+    active: boolean;
+    segments: Array<{ id: string; name?: string }>;
+}
+
+export interface MultiFloorMapState {
+    enabled: boolean;
+    maps: Array<FloorMap>;
+}
+
+export interface MultiFloorMapProperties {
+    maxNameLength: number;
+}
+
+export type MultiFloorMapAction =
+    | { action: "set_enabled"; enabled: boolean }
+    | { action: "select"; id: number }
+    | { action: "rename"; id: number; name: string }
+    | { action: "delete"; id: number };
 
 export interface DoNotDisturbTime {
     hour: number;

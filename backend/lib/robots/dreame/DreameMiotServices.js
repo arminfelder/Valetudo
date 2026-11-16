@@ -589,6 +589,9 @@ module.exports = {
                 MAP_DETAILS: {
                     PIID: 4
                 },
+                MULTI_FLOOR_ENABLED: {
+                    PIID: 7
+                },
 
                 ACTION_RESULT: {
                     PIID: 6

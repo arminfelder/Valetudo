@@ -166,10 +166,18 @@ const menuTree: Array<MenuEntry | MenuSubEntry | MenuSubheader> = [
                 Capability.MapSegmentRename,
 
                 Capability.CombinedVirtualRestrictions,
-                Capability.MapAnnotations
+                Capability.MapAnnotations,
+
+                Capability.MultiFloorMap
             ],
             type: "anyof"
         }
+    },
+    {
+        kind: "MenuSubEntry",
+        route: "/options/map_management/floor_maps",
+        title: "Floor Maps",
+        parentRoute: "/options/map_management"
     },
     {
         kind: "MenuSubEntry",

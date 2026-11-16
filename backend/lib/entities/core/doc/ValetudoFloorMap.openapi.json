@@ -1,0 +1,39 @@
+{
+  "components": {
+    "schemas": {
+      "ValetudoFloorMap": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string",
+            "description": "Not set when the map has no custom name"
+          },
+          "active": {
+            "type": "boolean",
+            "description": "true for the map that the robot uses now"
+          },
+          "segments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "metaData": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}

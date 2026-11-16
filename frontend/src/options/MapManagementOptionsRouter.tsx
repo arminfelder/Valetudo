@@ -7,6 +7,7 @@ import {Capability, useDuststreamingConfigurationQuery} from "../api";
 import React from "react";
 import RobotCoverageMapPage from "../map/RobotCoverageMapPage";
 import SpectatorMapPage from "../map/SpectatorMapPage";
+import FloorMaps from "./FloorMaps";
 
 const OptionsRouter = (): React.ReactElement => {
     const [
@@ -18,6 +19,8 @@ const OptionsRouter = (): React.ReactElement => {
         mapAnnotationsCapabilitySupported,
 
         duststreamingSupported,
+
+        multiFloorMapSupported,
     ] = useCapabilitiesSupported(
         Capability.CombinedVirtualRestrictions,
 
@@ -26,7 +29,9 @@ const OptionsRouter = (): React.ReactElement => {
 
         Capability.MapAnnotations,
 
-        Capability.Duststreaming
+        Capability.Duststreaming,
+
+        Capability.MultiFloorMap
     );
 
     const {data: duststreamingConfiguration} = useDuststreamingConfigurationQuery({
@@ -70,6 +75,11 @@ const OptionsRouter = (): React.ReactElement => {
                         />
                     }
                 />
+            }
+
+            {
+                multiFloorMapSupported &&
+                <Route path={"floor_maps"} element={<FloorMaps/>}/>
             }
 
             <Route path={"robot_coverage"} element={<RobotCoverageMapPage/>}/>

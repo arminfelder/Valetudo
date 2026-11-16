@@ -155,6 +155,14 @@ This capability is used to start the mapping process.
 Don't be confused if your robot doesn't have this capability.
 Usually, they will build the map during cleanup without requiring a separate mapping pass.
 
+## MultiFloorMapCapability
+
+This capability enables you to store maps for several floors and to select the map that the robot uses.
+You can also rename the stored maps and delete maps that are not active.
+
+To clean another floor, move the robot and its dock to that floor first, then select its map.
+The robot does not detect the floor itself. With the wrong map selected, it can get lost.
+
 ## MopDockCleanManualTriggerCapability
 
 This capability allows you to start and stop cleaning of the mops in the mop dock.

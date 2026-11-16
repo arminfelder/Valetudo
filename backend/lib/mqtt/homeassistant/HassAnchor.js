@@ -119,6 +119,7 @@ HassAnchor.REFERENCE = Object.freeze({
     CLEAN_SEGMENT_COMMAND: "clean_segment_command",
     FAN_SPEED_SET: "fan_speed_set",
     FAN_SPEED_PRESETS: "fan_speed_presets", // Actually contains the presets, not a topic
+    FLOOR_MAP_OPTIONS: "floor_map_options", // Actually contains the map labels, not a topic
     ERROR_STATE_DESCRIPTION: "error_state_description",
     VALETUDO_ROBOT_ERROR: "valetudo_robot_error",
     HASS_CONSUMABLE_STATE: "hass_consumable_state_",
